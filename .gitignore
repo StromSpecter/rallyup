@@ -1,0 +1,26 @@
+# OS
+.DS_Store
+
+# Node
+node_modules/
+dist/
+.vite/
+*.local
+
+# Go
+server/bin/
+server/tmp/
+*.test
+*.out
+
+# Env
+.env
+.env.*
+!.env.example
+
+# Editor
+.vscode/
+.idea/
+
+# Logs
+*.log

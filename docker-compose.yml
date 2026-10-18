@@ -1,0 +1,20 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: rallyup-postgres
+    environment:
+      POSTGRES_USER: rallyup
+      POSTGRES_PASSWORD: rallyup
+      POSTGRES_DB: rallyup
+    ports:
+      - "5432:5432"
+    volumes:
+      - rallyup-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U rallyup -d rallyup"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+volumes:
+  rallyup-data:

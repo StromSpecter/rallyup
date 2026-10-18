@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="id">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      name="description"
+      content="RallyUp mengelola fun match padel dan tenis: sesi berulang, pasangan yang seimbang, dan rating komunitas yang terverifikasi."
+    />
+    <meta name="theme-color" content="#0E4D3A" />
+    <title>RallyUp</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700&family=Archivo+Black&display=swap"
+      rel="stylesheet"
+    />
+
+    <script>
+      // Terapkan tema sebelum React jalan supaya tidak ada kedipan warna.
+      ;(function () {
+        try {
+          var stored = localStorage.getItem('rallyup.theme')
+          var dark =
+            stored === 'dark' ||
+            (stored === null &&
+              window.matchMedia('(prefers-color-scheme: dark)').matches)
+          if (dark) document.documentElement.classList.add('dark')
+        } catch (e) {
+          /* localStorage bisa diblokir; abaikan */
+        }
+      })()
+    </script>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>
