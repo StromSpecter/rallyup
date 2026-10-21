@@ -57,6 +57,7 @@ type RegistrationRepository interface {
 	ListByEvent(ctx context.Context, eventID uuid.UUID) ([]Registration, error)
 	FindByEventAndUser(ctx context.Context, eventID, userID uuid.UUID) (*Registration, error)
 	SetCheckedIn(ctx context.Context, eventID, userID uuid.UUID, checkedIn bool) error
+	SetCheckedInAll(ctx context.Context, eventID uuid.UUID) error
 	// PromoteWaitlist menaikkan peserta tunggu pertama setelah ada yang keluar.
 	PromoteWaitlist(ctx context.Context, eventID uuid.UUID) (*uuid.UUID, error)
 }

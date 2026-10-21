@@ -66,6 +66,8 @@ func NewRouter(cfg *config.Config, logger *slog.Logger, h *handler.Handler, toke
 			r.Post("/events/{eventID}/join", h.JoinEvent)
 			r.Post("/events/{eventID}/leave", h.LeaveEvent)
 			r.Post("/events/{eventID}/registrations/{userID}/check-in", h.CheckIn)
+r.Post("/events/{eventID}/check-in-all", h.CheckInAll)
+r.Post("/events/{eventID}/registrations/{userID}/cancel", h.CancelRegistration)
 			r.Post("/events/{eventID}/pairings", h.GeneratePairings)
 			r.Post("/events/{eventID}/close", h.CloseEvent)
 

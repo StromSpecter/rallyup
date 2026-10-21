@@ -97,3 +97,11 @@ export function substitutePlayer(
 export function closeEvent(eventId: string): Promise<Event> {
   return http.post<Event>(`/events/${eventId}/close`)
 }
+
+export function checkInAll(eventId: string): Promise<{ ok: boolean }> {
+  return http.post<{ ok: boolean }>(`/events/${eventId}/check-in-all`)
+}
+
+export function cancelRegistration(eventId: string, userId: string): Promise<{ ok: boolean }> {
+  return http.post<{ ok: boolean }>(`/events/${eventId}/registrations/${userId}/cancel`)
+}

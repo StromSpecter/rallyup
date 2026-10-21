@@ -230,6 +230,30 @@ func (h *Handler) LeaveEvent(w http.ResponseWriter, r *http.Request) {
 	httpx.JSON(w, http.StatusOK, map[string]bool{"ok": true})
 }
 
+func (h *Handler) CancelRegistration(w http.ResponseWriter, r *http.Request) {
+	actorID, err := userID(r)
+	if err != nil {
+		httpx.Error(w, err)
+		return
+	}
+	eventID, err := pathUUID(r, "eventID")
+	if err != nil {
+		httpx.Error(w, err)
+		return
+	}
+	targetID, err := pathUUID(r, "userID")
+	if err != nil {
+		httpx.Error(w, err)
+		return
+	}
+
+	if err := h.services.Event.CancelRegistration(r.Context(), actorID, eventID, targetID); err != nil {
+		httpx.Error(w, err)
+		return
+	}
+	httpx.JSON(w, http.StatusOK, map[string]bool{"ok": true})
+}
+
 func (h *Handler) CheckIn(w http.ResponseWriter, r *http.Request) {
 	actorID, err := userID(r)
 	if err != nil {
@@ -256,6 +280,25 @@ func (h *Handler) CheckIn(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := h.services.Event.CheckIn(r.Context(), actorID, eventID, targetID, body.CheckedIn); err != nil {
+		httpx.Error(w, err)
+		return
+	}
+	httpx.JSON(w, http.StatusOK, map[string]bool{"ok": true})
+}
+
+func (h *Handler) CheckInAll(w http.ResponseWriter, r *http.Request) {
+	actorID, err := userID(r)
+	if err != nil {
+		httpx.Error(w, err)
+		return
+	}
+	eventID, err := pathUUID(r, "eventID")
+	if err != nil {
+		httpx.Error(w, err)
+		return
+	}
+
+	if err := h.services.Event.CheckInAll(r.Context(), actorID, eventID); err != nil {
 		httpx.Error(w, err)
 		return
 	}

@@ -25,7 +25,9 @@ import {
   TableRow,
 } from '@/shared/components/ui/table'
 import {
+  cancelRegistration,
   checkIn,
+  checkInAll,
   closeEvent,
   generatePairings,
   getEvent,
@@ -55,6 +57,7 @@ export function EventPage() {
   const [closeOpen, setCloseOpen] = useState(false)
   const [courts, setCourts] = useState('2')
   const [pendingUserId, setPendingUserId] = useState('')
+  const [pendingCancelUserId, setPendingCancelUserId] = useState('')
 
   // user.id masuk dependensi supaya hak kelola ikut dihitung ulang setelah
   // pengunjung masuk dari halaman ini.
@@ -92,6 +95,16 @@ export function EventPage() {
       onSuccess: () => detail.reload(),
     },
   )
+  const cancelParticipant = useAction((userId: string) => cancelRegistration(eventId, userId), {
+    successMessage: 'Peserta dibatalkan.',
+    onSuccess: () => detail.reload(),
+  })
+
+  const handleCancelParticipant = (userId: string) => {
+    setPendingCancelUserId(userId)
+    void cancelParticipant.run(userId).finally(() => setPendingCancelUserId(''))
+  }
+
   const close = useAction(() => closeEvent(eventId), {    successMessage: 'Sesi ditutup.',
     onSuccess: () => {
       setCloseOpen(false)
@@ -107,6 +120,11 @@ export function EventPage() {
     setPendingUserId(userId)
     void toggleCheckIn.run(userId, checked).finally(() => setPendingUserId(''))
   }
+
+  const checkInAllAction = useAction(() => checkInAll(eventId), {
+    successMessage: 'Semua peserta ditandai hadir.',
+    onSuccess: () => detail.reload(),
+  })
 
   if (detail.loading) {
     return (
@@ -130,6 +148,7 @@ export function EventPage() {
   }
 
   const { event, registrations, matches, bench, myStatus, canManage } = detail.data
+
   const closed = event.status === 'closed' || event.status === 'cancelled'
   const isRegistered = myStatus === 'joined' || myStatus === 'waitlist'
   const shareUrl = typeof window === 'undefined' ? '' : window.location.href
@@ -339,7 +358,19 @@ export function EventPage() {
           <section className="space-y-4">
             <SectionHeading
               title="Peserta"
-              hint={`${event.joinedCount} dari ${event.capacity} slot`}
+              hint={`${event.joinedCount} utama · ${event.waitlistCount} tunggu · ${registrations.filter((item) => item.status === 'cancelled').length} batal`}
+              actions={
+                canManage && event.joinedCount > 0 ? (
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => void checkInAllAction.run()}
+                    disabled={checkInAllAction.pending}
+                  >
+                    {checkInAllAction.pending ? 'Memproses...' : 'Tandai semua hadir'}
+                  </Button>
+                ) : undefined
+              }
             />
             {isRegistered ? (
               <p className="rounded-sm border border-border bg-muted/40 px-3 py-2 text-sm text-muted-foreground">
@@ -353,6 +384,8 @@ export function EventPage() {
               canManage={canManage}
               pendingUserId={pendingUserId}
               onToggleCheckIn={handleCheckIn}
+              onCancelParticipant={handleCancelParticipant}
+              pendingCancelUserId={pendingCancelUserId}
             />
           </section>
         </div>

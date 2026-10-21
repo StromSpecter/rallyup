@@ -193,7 +193,7 @@ export function MatchPage() {
   const wins = countSetWins(score?.sets)
   const winner = score ? (wins.b > wins.a ? 'B' : 'A') : null
   const isPlayer = Boolean(user && match.players.some((player) => player.userId === user?.id))
-  const canSubmit = Boolean(user && isPlayer && match.status !== 'finished')
+  const canSubmit = Boolean(user && canManage && match.status !== 'finished')
   const canRespond =
     Boolean(user && score && score.status === 'pending') &&
     Boolean(canManage || (isPlayer && user?.id !== score?.submittedBy))
@@ -326,7 +326,7 @@ export function MatchPage() {
             <p className="rounded-sm border border-dashed border-border p-5 text-sm text-muted-foreground">
               {match.status === 'finished'
                 ? 'Pertandingan ini sudah selesai.'
-                : 'Hanya pemain di pertandingan ini yang bisa mengisi skor.'}
+                : 'Hanya owner event yang bisa mengisi skor.'}
             </p>
           ) : null}
         </div>

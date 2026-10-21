@@ -103,8 +103,16 @@ func (s *ScoreService) Submit(ctx context.Context, userID, matchID uuid.UUID, se
 	if err != nil {
 		return domain.ScoreSubmission{}, err
 	}
-	if !isMatchPlayer(match, userID) {
-		return domain.ScoreSubmission{}, fmt.Errorf("%w: hanya pemain di pertandingan ini yang bisa mengisi skor", domain.ErrForbidden)
+	event, err := s.events.FindByID(ctx, match.EventID)
+	if err != nil {
+		return domain.ScoreSubmission{}, err
+	}
+	// Hanya owner/pengelola sesi yang boleh mengisi skor, bukan pemain.
+	if event.OrganizerID != userID {
+		_, role, err := s.communities.FindBySlug(ctx, event.CommunitySlug, &userID)
+		if err != nil || role == nil || (*role != domain.RoleOwner && *role != domain.RoleModerator) {
+			return domain.ScoreSubmission{}, fmt.Errorf("%w: hanya owner event yang bisa mengisi skor", domain.ErrForbidden)
+		}
 	}
 	if match.Status == domain.MatchFinished {
 		return domain.ScoreSubmission{}, fmt.Errorf("%w: pertandingan ini sudah punya skor terkonfirmasi", domain.ErrInvalidState)

@@ -109,8 +109,15 @@ func (r *RegistrationRepo) Cancel(ctx context.Context, eventID, userID uuid.UUID
 
 func (r *RegistrationRepo) ListByEvent(ctx context.Context, eventID uuid.UUID) ([]domain.Registration, error) {
 	rows, err := r.pool.Query(ctx, registrationSelect+`
-		 where r.event_id = $1 and r.status <> 'cancelled'
-		 order by r.checked_in desc, r.status asc, r.joined_at asc`, eventID)
+		 where r.event_id = $1
+		 order by case r.status
+		          when 'joined' then 0
+		          when 'waitlist' then 1
+		          when 'cancelled' then 2
+		          else 3
+		        end,
+		        r.checked_in desc,
+		        r.joined_at asc`, eventID)
 	if err != nil {
 		return nil, mapErr(err)
 	}
@@ -151,6 +158,15 @@ func (r *RegistrationRepo) SetCheckedIn(ctx context.Context, eventID, userID uui
 		return domain.ErrInvalidState
 	}
 	return nil
+}
+
+// SetCheckedInAll menandai semua peserta utama sebagai hadir dalam satu operasi.
+func (r *RegistrationRepo) SetCheckedInAll(ctx context.Context, eventID uuid.UUID) error {
+	_, err := r.pool.Exec(ctx,
+		`update event_registrations set checked_in = true
+		 where event_id = $1 and status = 'joined'`,
+		eventID)
+	return mapErr(err)
 }
 
 // PromoteWaitlist menaikkan peserta tunggu terlama ke slot utama. skip locked

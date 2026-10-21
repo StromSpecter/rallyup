@@ -276,6 +276,31 @@ func (s *EventService) Leave(ctx context.Context, userID, eventID uuid.UUID) err
 	return nil
 }
 
+// CancelRegistration membatalkan keikutsertaan seorang peserta oleh pengelola
+// sesi. Berbeda dengan Leave yang dipanggil peserta sendiri.
+func (s *EventService) CancelRegistration(ctx context.Context, actorID, eventID, targetUserID uuid.UUID) error {
+	event, err := s.events.FindByID(ctx, eventID)
+	if err != nil {
+		return err
+	}
+	if err := s.authorizeManage(ctx, event, actorID); err != nil {
+		return err
+	}
+	if err := s.registrations.Cancel(ctx, eventID, targetUserID); err != nil {
+		return err
+	}
+
+	if promoted, err := s.registrations.PromoteWaitlist(ctx, eventID); err == nil && promoted != nil {
+		if ev, err := s.events.FindByID(ctx, eventID); err == nil {
+			s.notifications.Notify(ctx, *promoted, "event.promoted",
+				"Slot terbuka", fmt.Sprintf("Kamu naik dari daftar tunggu ke slot utama %s.", ev.Title),
+				"/app/events/"+eventID.String())
+		}
+	}
+	s.publishEvent(ctx, eventID.String(), "registrations")
+	return nil
+}
+
 func (s *EventService) CheckIn(ctx context.Context, actorID, eventID, targetUserID uuid.UUID, checkedIn bool) error {
 	event, err := s.events.FindByID(ctx, eventID)
 	if err != nil {
@@ -285,6 +310,22 @@ func (s *EventService) CheckIn(ctx context.Context, actorID, eventID, targetUser
 		return err
 	}
 	if err := s.registrations.SetCheckedIn(ctx, eventID, targetUserID, checkedIn); err != nil {
+		return err
+	}
+	s.publishEvent(ctx, eventID.String(), "checkin")
+	return nil
+}
+
+// CheckInAll menandai semua peserta utama sebagai hadir sekaligus.
+func (s *EventService) CheckInAll(ctx context.Context, actorID, eventID uuid.UUID) error {
+	event, err := s.events.FindByID(ctx, eventID)
+	if err != nil {
+		return err
+	}
+	if err := s.authorizeManage(ctx, event, actorID); err != nil {
+		return err
+	}
+	if err := s.registrations.SetCheckedInAll(ctx, eventID); err != nil {
 		return err
 	}
 	s.publishEvent(ctx, eventID.String(), "checkin")
