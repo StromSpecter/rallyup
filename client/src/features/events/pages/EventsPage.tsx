@@ -76,7 +76,6 @@ export function EventsPage() {
           q: appliedQuery || undefined,
           communitySlug: communitySlug || undefined,
           scope: user ? scope || undefined : undefined,
-          from: new Date().toISOString(),
           limit: PAGE_SIZE,
           offset: (page - 1) * PAGE_SIZE,
         },

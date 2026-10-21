@@ -56,9 +56,9 @@ func (r *EventRepo) Create(ctx context.Context, e domain.Event) (domain.Event, e
 	return r.FindByID(ctx, id)
 }
 
-func (r *EventRepo) List(ctx context.Context, f domain.ListEventsFilter) ([]domain.Event, error) {
-	q := newQuery()
-
+// applyFilters dipakai List dan Count supaya kedua kueri tidak pernah
+// menyaring dengan aturan yang berbeda.
+func applyFilters(q *query, f domain.ListEventsFilter) {
 	if f.CommunitySlug != "" {
 		q.where("c.slug = %s", f.CommunitySlug)
 	}
@@ -73,7 +73,8 @@ func (r *EventRepo) List(ctx context.Context, f domain.ListEventsFilter) ([]doma
 		q.where("(e.title ilike %s or e.venue ilike %s or e.city ilike %s)", like, like, like)
 	}
 	if f.From != nil {
-		q.where("e.starts_at >= %s", *f.From)
+		// Sesi yang sudah mulai tapi belum selesai tetap masuk rentang.
+		q.where("e.ends_at >= %s", *f.From)
 	}
 	if f.To != nil {
 		q.where("e.starts_at <= %s", *f.To)
@@ -86,8 +87,20 @@ func (r *EventRepo) List(ctx context.Context, f domain.ListEventsFilter) ([]doma
 		                  where r.event_id = e.id and r.user_id = %s and r.status <> 'cancelled')`,
 			*f.ParticipantID)
 	}
+}
 
-	sql := eventSelect + q.clause() + " order by e.starts_at asc" + q.paging(f.Limit, f.Offset)
+// eventOrder menaruh sesi yang sedang berjalan dan yang akan datang lebih dulu
+// (terdekat di atas), lalu sesi yang sudah selesai dari yang terbaru.
+const eventOrder = `
+	order by (e.ends_at < now()) asc,
+	         case when e.ends_at >= now() then e.starts_at end asc,
+	         case when e.ends_at < now() then e.starts_at end desc`
+
+func (r *EventRepo) List(ctx context.Context, f domain.ListEventsFilter) ([]domain.Event, error) {
+	q := newQuery()
+	applyFilters(q, f)
+
+	sql := eventSelect + q.clause() + eventOrder + q.paging(f.Limit, f.Offset)
 
 	rows, err := r.pool.Query(ctx, sql, q.args...)
 	if err != nil {
@@ -140,34 +153,7 @@ func (r *EventRepo) Counts(ctx context.Context, eventID uuid.UUID) (int, int, in
 
 func (r *EventRepo) Count(ctx context.Context, f domain.ListEventsFilter) (int, error) {
 	q := newQuery()
-
-	if f.CommunitySlug != "" {
-		q.where("c.slug = %s", f.CommunitySlug)
-	}
-	if f.Sport != "" {
-		q.where("e.sport = %s", f.Sport)
-	}
-	if len(f.Status) > 0 {
-		q.where("e.status = any(%s)", f.Status)
-	}
-	if f.Query != "" {
-		like := "%" + f.Query + "%"
-		q.where("(e.title ilike %s or e.venue ilike %s or e.city ilike %s)", like, like, like)
-	}
-	if f.From != nil {
-		q.where("e.starts_at >= %s", *f.From)
-	}
-	if f.To != nil {
-		q.where("e.starts_at <= %s", *f.To)
-	}
-	if f.OrganizerID != nil {
-		q.where("e.organizer_id = %s", *f.OrganizerID)
-	}
-	if f.ParticipantID != nil {
-		q.where(`exists (select 1 from event_registrations r
-		                  where r.event_id = e.id and r.user_id = %s and r.status <> 'cancelled')`,
-			*f.ParticipantID)
-	}
+	applyFilters(q, f)
 
 	var total int
 	err := r.pool.QueryRow(ctx, "select count(*) from events e join communities c on c.id = e.community_id"+q.clause(), q.args...).Scan(&total)
