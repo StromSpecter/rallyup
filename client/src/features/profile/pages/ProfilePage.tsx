@@ -42,7 +42,7 @@ export function ProfilePage() {
       <PageHeader
         eyebrow="Akun"
         title="Profil"
-        description="Nama dan warna avatar ini yang tampil di daftar peserta dan papan peringkat."
+        description="Nama dan warna avatar ini yang tampil di daftar peserta dan peringkat sesi."
       />
 
       <div className="grid gap-8 sm:grid-cols-[auto_1fr]">
@@ -110,7 +110,7 @@ export function ProfilePage() {
 
           <div className="space-y-1.5">
             <Eyebrow>Email</Eyebrow>
-            <p className="rounded-md border border-border bg-muted/40 px-3 py-2 text-sm">
+            <p className="rounded-sm border border-border bg-muted/40 px-3 py-2 text-sm">
               {user.email}
             </p>
             <p className="text-xs text-muted-foreground">

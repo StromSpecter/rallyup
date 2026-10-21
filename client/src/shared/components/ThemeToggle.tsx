@@ -17,7 +17,7 @@ export function ThemeToggle({ className }: { className?: string }) {
       aria-label={nextIsDark ? 'Ganti ke tema gelap' : 'Ganti ke tema terang'}
       title={nextIsDark ? 'Ganti ke tema gelap' : 'Ganti ke tema terang'}
       className={[
-        'inline-flex size-9 items-center justify-center rounded-md border border-border text-foreground transition-colors hover:bg-accent',
+        'inline-flex size-9 items-center justify-center rounded-sm border border-border text-foreground transition-colors hover:bg-accent',
         className ?? '',
       ].join(' ')}
     >

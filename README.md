@@ -1,9 +1,9 @@
 # RallyUp
 
-Platform pengelolaan fun match untuk komunitas padel dan tenis di Indonesia.
+Platform pengelolaan fun match untuk komunitas padel, tenis, badminton, dan basket di Indonesia.
 Penyelenggara menjalankan sesi berulang dari satu tempat, pemain menemukan
 pertandingan yang seimbang, dan setiap hasil yang terverifikasi menaikkan
-rating serta peringkat komunitas.
+rating pemain serta peringkat pada sesi itu.
 
 Arah desain ada di [DESIGN.md](DESIGN.md).
 
@@ -20,7 +20,7 @@ Arah desain ada di [DESIGN.md](DESIGN.md).
 
 ```
 rallyup/
-├── DESIGN.md          # Arah visual, palet, tipografi, dials
+├── DESIGN.md          # Arah visual dari berkas Figma: palet, tipografi, dials
 ├── Makefile           # Perintah harian
 ├── docker-compose.yml # Postgres untuk development
 ├── client/            # Frontend (Vite + React)
@@ -57,7 +57,7 @@ ke repo.
 ```
 client/src/
 ├── app/               # Router, provider, layout aplikasi
-├── features/          # Fitur per domain: auth, events, matches, leaderboard
+├── features/          # Fitur per domain: auth, events, matches, players
 │   └── <feature>/
 │       ├── api/       # Akses data fitur itu saja
 │       ├── components/
@@ -123,14 +123,15 @@ karena EventSource tidak bisa mengirim header.
 |---|---|---|
 | GET | `/events` | Filter: `communitySlug`, `sport`, `status`, `q`, `from`, `to` |
 | POST | `/events` | Buat sesi |
-| GET | `/events/{id}` | Detail, peserta, pertandingan |
+| GET | `/events/{id}` | Detail, peserta, pertandingan, peringkat sesi |
 | PATCH | `/events/{id}` | Ubah sesi, khusus organizer |
 | POST | `/events/{id}/join` | Gabung, otomatis masuk waitlist kalau penuh |
 | POST | `/events/{id}/leave` | Keluar, slot langsung terisi dari waitlist |
 | POST | `/events/{id}/registrations/{userId}/check-in` | Absen, khusus organizer |
-| POST | `/events/{id}/pairings` | Susun pasangan dari pemain yang sudah absen |
+| POST | `/events/{id}/pairings` | Susun pasangan dari pemain yang sudah absen; `append` menambah ronde dan merotasi pemain |
 | POST | `/events/{id}/close` | Tutup sesi |
 | GET | `/events/{id}/matches` | Daftar pertandingan |
+| POST | `/matches/{id}/substitute` | Tukar pemain lapangan dengan yang menunggu giliran |
 
 ### Skor
 
@@ -142,20 +143,21 @@ karena EventSource tidak bisa mengirim header.
 
 Rating hanya dihitung ulang setelah skor berstatus `confirmed`.
 
-### Peringkat dan pemain
+### Pemain
 
 | Method | Rute | Keterangan |
 |---|---|---|
-| GET | `/leaderboard` | `kind` salah satu dari `skill`, `season`, `participation` |
 | GET | `/players/{id}` | Profil dan statistik |
 | GET | `/players/{id}/matches` | Riwayat pertandingan |
+
+Peringkat dihitung per sesi dan dikirim sebagai bagian dari detail sesi
+(`standings` pada `GET /events/{id}`).
 
 ### Server-Sent Events
 
 | Rute | Topik |
 |---|---|
 | `/api/v1/stream/events/{id}` | `registrations`, `checkin`, `match`, `score`, `event` |
-| `/api/v1/stream/leaderboard?communitySlug=&sport=` | `leaderboard` |
 | `/api/v1/stream/me` | `notification` |
 
 Tiap koneksi mengirim heartbeat komentar tiap 25 detik supaya proxy tidak

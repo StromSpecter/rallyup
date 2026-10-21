@@ -2,7 +2,6 @@ package repo
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -46,58 +45,6 @@ func (r *RatingRepo) Upsert(ctx context.Context, pr domain.PlayerRating) error {
 		pr.UserID, pr.CommunityID, pr.Sport, pr.SkillRating, pr.SeasonPoints,
 		pr.Participation, pr.Matches, pr.Wins, pr.Losses, pr.Reliability)
 	return mapErr(err)
-}
-
-func (r *RatingRepo) Leaderboard(ctx context.Context, f domain.LeaderboardFilter) ([]domain.LeaderboardRow, error) {
-	order := "skill_rating desc, matches desc"
-	switch f.Kind {
-	case domain.LeaderboardSeason:
-		order = "season_points desc, skill_rating desc"
-	case domain.LeaderboardParticipation:
-		order = "participation desc, matches desc"
-	}
-
-	q := newQuery()
-	q.where("pr.community_id = %s", f.CommunityID)
-	q.where("pr.sport = %s", f.Sport)
-	if f.Kind == domain.LeaderboardParticipation {
-		q.where("pr.participation > 0")
-	}
-
-	limit := f.Limit
-	if limit <= 0 {
-		limit = 50
-	}
-
-	sql := fmt.Sprintf(`
-		select pr.user_id, u.name, u.avatar_color,
-		       pr.skill_rating::float8, pr.season_points, pr.participation,
-		       pr.matches, pr.wins, pr.losses, pr.reliability::float8
-		from player_ratings pr
-		join users u on u.id = pr.user_id
-		%s
-		order by %s
-		limit %d`, q.clause(), order, limit)
-
-	rows, err := r.pool.Query(ctx, sql, q.args...)
-	if err != nil {
-		return nil, mapErr(err)
-	}
-	defer rows.Close()
-
-	out := []domain.LeaderboardRow{}
-	for rows.Next() {
-		var row domain.LeaderboardRow
-		if err := rows.Scan(&row.UserID, &row.Name, &row.AvatarColor,
-			&row.SkillRating, &row.SeasonPoints, &row.Participation,
-			&row.Matches, &row.Wins, &row.Losses, &row.Reliability); err != nil {
-			return nil, mapErr(err)
-		}
-		row.Provisional = row.Matches < domain.CalibrationMatches
-		row.Rank = len(out) + 1
-		out = append(out, row)
-	}
-	return out, mapErr(rows.Err())
 }
 
 func (r *RatingRepo) Profile(ctx context.Context, userID uuid.UUID) (domain.PlayerProfile, error) {

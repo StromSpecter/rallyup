@@ -7,12 +7,12 @@ import (
 // avatarPalette adalah palet tetap untuk avatar inisial. Placeholder ini
 // dipakai selama pemain belum punya foto sendiri.
 var avatarPalette = []string{
-	"#0E4D3A",
-	"#8A5A00",
-	"#1F3A5F",
+	"#174BE0",
+	"#101B30",
+	"#0E5A6B",
 	"#6B2D3C",
-	"#3F4A0E",
 	"#4A2C5E",
+	"#5C4A00",
 }
 
 // AvatarColor memberi warna stabil untuk sebuah nama, sehingga orang yang sama

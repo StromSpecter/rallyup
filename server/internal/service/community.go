@@ -36,7 +36,6 @@ func (s *CommunityService) Create(ctx context.Context, ownerID uuid.UUID, in Cre
 		return domain.Community{}, fmt.Errorf("%w: kota wajib diisi", domain.ErrInvalid)
 	}
 
-
 	community := domain.Community{
 		Slug:        uniqueSlug(name, city),
 		Name:        name,

@@ -22,7 +22,7 @@ export function RegistrationList({
 }: RegistrationListProps) {
   if (registrations.length === 0) {
     return (
-      <p className="rounded-lg border border-dashed border-border p-6 text-sm text-muted-foreground">
+      <p className="rounded-sm border border-dashed border-border p-6 text-sm text-muted-foreground">
         Belum ada peserta. Bagikan tautan sesi ini supaya pemain bisa mendaftar.
       </p>
     )

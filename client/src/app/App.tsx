@@ -12,7 +12,6 @@ import { CommunityPage } from '@/features/communities/pages/CommunityPage'
 import { EventsPage } from '@/features/events/pages/EventsPage'
 import { EventPage } from '@/features/events/pages/EventPage'
 import { MatchPage } from '@/features/matches/pages/MatchPage'
-import { LeaderboardPage } from '@/features/leaderboard/pages/LeaderboardPage'
 import { PlayerPage } from '@/features/players/pages/PlayerPage'
 import { DashboardPage } from '@/features/dashboard/pages/DashboardPage'
 import { ProfilePage } from '@/features/profile/pages/ProfilePage'
@@ -39,7 +38,6 @@ export function App() {
           <Route path="sesi" element={<EventsPage />} />
           <Route path="sesi/:eventId" element={<EventPage />} />
 
-          <Route path="peringkat" element={<LeaderboardPage />} />
           <Route path="pemain/:userId" element={<PlayerPage />} />
 
           <Route path="masuk" element={<LoginPage />} />

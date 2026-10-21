@@ -41,7 +41,7 @@ function TeamColumn({
   return (
     <div
       className={[
-        'flex flex-col gap-3 rounded-lg border p-4',
+        'flex flex-col gap-3 rounded-sm border p-4',
         won ? 'border-primary bg-primary/5' : 'border-border bg-card',
       ].join(' ')}
     >
@@ -257,7 +257,7 @@ export function MatchPage() {
 
       <div className="grid gap-8 lg:grid-cols-[2fr_1fr]">
         <div className="space-y-6">
-          <section className="space-y-4 rounded-lg border border-border bg-card p-5">
+          <section className="space-y-4 rounded-sm border border-border bg-card p-5">
             <div className="grid items-stretch gap-4 sm:grid-cols-[1fr_auto_1fr]">
               <TeamColumn label="A" players={teamA} won={winner === 'A'} />
               <div className="flex items-center justify-center">
@@ -271,14 +271,14 @@ export function MatchPage() {
           </section>
 
           {score ? (
-            <section className="space-y-3 rounded-lg border border-border bg-card p-5">
+            <section className="space-y-3 rounded-sm border border-border bg-card p-5">
               <div className="flex flex-wrap items-center gap-3">
                 <Eyebrow>Skor</Eyebrow>
                 <ScoreStatusBadge status={score.status} />
               </div>
               <p className="text-sm text-muted-foreground">{SCORE_STATUS_HINT[score.status]}</p>
               {score.disputeReason ? (
-                <p className="rounded-md border border-destructive/40 bg-destructive/5 p-3 text-sm text-destructive">
+                <p className="rounded-sm border border-destructive/40 bg-destructive/5 p-3 text-sm text-destructive">
                   Sanggahan: {score.disputeReason}
                 </p>
               ) : null}
@@ -302,7 +302,7 @@ export function MatchPage() {
           ) : null}
 
           {canSubmit ? (
-            <section className="space-y-4 rounded-lg border border-border bg-card p-5">
+            <section className="space-y-4 rounded-sm border border-border bg-card p-5">
               <div className="space-y-1">
                 <Eyebrow>Isi skor</Eyebrow>
                 <p className="text-sm text-muted-foreground">
@@ -323,7 +323,7 @@ export function MatchPage() {
           ) : null}
 
           {!canSubmit && !score ? (
-            <p className="rounded-lg border border-dashed border-border p-5 text-sm text-muted-foreground">
+            <p className="rounded-sm border border-dashed border-border p-5 text-sm text-muted-foreground">
               {match.status === 'finished'
                 ? 'Pertandingan ini sudah selesai.'
                 : 'Hanya pemain di pertandingan ini yang bisa mengisi skor.'}
@@ -332,7 +332,7 @@ export function MatchPage() {
         </div>
 
         <aside className="space-y-4">
-          <div className="rounded-lg border border-border bg-card p-5">
+          <div className="rounded-sm border border-border bg-card p-5">
             <Eyebrow>Konteks</Eyebrow>
             <dl className="mt-3 space-y-3 text-sm">
               <div className="flex items-center justify-between gap-3">
@@ -359,7 +359,7 @@ export function MatchPage() {
             </dl>
           </div>
 
-          <div className="rounded-lg border border-border bg-card p-5 text-sm text-muted-foreground">
+          <div className="rounded-sm border border-border bg-card p-5 text-sm text-muted-foreground">
             <Eyebrow>Aturan skor</Eyebrow>
             <ul className="mt-3 list-disc space-y-2 pl-4">
               <li>Satu pihak mengisi skor, pihak lain mengonfirmasi.</li>

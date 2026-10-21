@@ -3,6 +3,8 @@ package handler
 import (
 	"net/http"
 
+	"github.com/google/uuid"
+
 	"rallyup/server/internal/domain"
 	"rallyup/server/internal/pkg/httpx"
 )
@@ -21,6 +23,47 @@ func (h *Handler) GetMatch(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	httpx.JSON(w, http.StatusOK, detail)
+}
+
+// SubstituteMatchPlayer menukar pemain di lapangan dengan pemain yang duduk
+// di bench. Dipakai organizer saat ada pergantian di tengah sesi.
+func (h *Handler) SubstituteMatchPlayer(w http.ResponseWriter, r *http.Request) {
+	actorID, err := userID(r)
+	if err != nil {
+		httpx.Error(w, err)
+		return
+	}
+	matchID, err := pathUUID(r, "matchID")
+	if err != nil {
+		httpx.Error(w, err)
+		return
+	}
+
+	var body struct {
+		OutUserID string `json:"outUserId"`
+		InUserID  string `json:"inUserId"`
+	}
+	if err := decode(r, &body); err != nil {
+		httpx.Error(w, err)
+		return
+	}
+	outUserID, err := uuid.Parse(body.OutUserID)
+	if err != nil {
+		httpx.Error(w, errInvalid("outUserId tidak valid"))
+		return
+	}
+	inUserID, err := uuid.Parse(body.InUserID)
+	if err != nil {
+		httpx.Error(w, errInvalid("inUserId tidak valid"))
+		return
+	}
+
+	match, err := h.services.Event.SubstitutePlayer(r.Context(), actorID, matchID, outUserID, inUserID)
+	if err != nil {
+		httpx.Error(w, err)
+		return
+	}
+	httpx.JSON(w, http.StatusOK, match)
 }
 
 func (h *Handler) SubmitScore(w http.ResponseWriter, r *http.Request) {
@@ -108,25 +151,6 @@ func (h *Handler) DisputeScore(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	httpx.JSON(w, http.StatusOK, map[string]bool{"ok": true})
-}
-
-func (h *Handler) Leaderboard(w http.ResponseWriter, r *http.Request) {
-	kind := domain.LeaderboardKind(r.URL.Query().Get("kind"))
-	if kind == "" {
-		kind = domain.LeaderboardSkill
-	}
-
-	board, err := h.services.Leaderboard.Board(r.Context(),
-		r.URL.Query().Get("communitySlug"),
-		domain.Sport(r.URL.Query().Get("sport")),
-		kind,
-		queryInt(r, "limit", 50),
-	)
-	if err != nil {
-		httpx.Error(w, err)
-		return
-	}
-	httpx.JSON(w, http.StatusOK, board)
 }
 
 func (h *Handler) GetPlayer(w http.ResponseWriter, r *http.Request) {

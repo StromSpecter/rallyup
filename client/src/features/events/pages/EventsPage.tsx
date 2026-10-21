@@ -11,11 +11,13 @@ import { LoadingRows } from '@/shared/components/Loading'
 import { PageHeader } from '@/shared/components/PageHeader'
 import { SegmentedControl } from '@/shared/components/SegmentedControl'
 import { Button } from '@/shared/components/ui/button'
+import { Pagination } from '@/shared/components/ui/pagination'
 import { Input } from '@/shared/components/ui/input'
 import { Label } from '@/shared/components/ui/label'
 import { SelectField } from '@/shared/components/FormField'
 import { listCommunities } from '@/shared/api/communities'
 import { listEvents } from '@/shared/api/events'
+import { SPORTS } from '@/shared/lib/constants'
 import { useAsync } from '@/shared/hooks/useAsync'
 import type { Sport } from '@/shared/types/api'
 import { EventFormDialog } from '../components/EventFormDialog'
@@ -24,8 +26,7 @@ type Scope = '' | 'joined' | 'mine'
 
 const SPORT_OPTIONS: { value: '' | Sport; label: string }[] = [
   { value: '', label: 'Semua' },
-  { value: 'padel', label: 'Padel' },
-  { value: 'tennis', label: 'Tenis' },
+  ...SPORTS.map((sport) => ({ value: sport.value, label: sport.label })),
 ]
 
 const SCOPE_OPTIONS: { value: Scope; label: string }[] = [
@@ -33,6 +34,8 @@ const SCOPE_OPTIONS: { value: Scope; label: string }[] = [
   { value: 'joined', label: 'Saya ikut' },
   { value: 'mine', label: 'Saya kelola' },
 ]
+
+const PAGE_SIZE = 9
 
 export function EventsPage() {
   const { user } = useAuth()
@@ -44,6 +47,7 @@ export function EventsPage() {
   const scope = (params.get('scope') ?? '') as Scope
   const communitySlug = params.get('komunitas') ?? ''
   const appliedQuery = params.get('q') ?? ''
+  const page = Math.max(1, Number(params.get('page') ?? '1') || 1)
   const createOpen = params.get('buat') === '1'
 
   const [searchInput, setSearchInput] = useState(appliedQuery)
@@ -56,6 +60,7 @@ export function EventsPage() {
           if (value) next.set(key, value)
           else next.delete(key)
         }
+        if (!Object.prototype.hasOwnProperty.call(patch, 'page')) next.delete('page')
         return next
       })
     },
@@ -72,13 +77,16 @@ export function EventsPage() {
           communitySlug: communitySlug || undefined,
           scope: user ? scope || undefined : undefined,
           from: new Date().toISOString(),
-          limit: 40,
+          limit: PAGE_SIZE,
+          offset: (page - 1) * PAGE_SIZE,
         },
         signal,
       ),
-    [sport, status, appliedQuery, communitySlug, user ? scope : ''],
+    [sport, status, appliedQuery, communitySlug, user ? scope : '', page],
   )
   const items = events.data?.items ?? []
+  const total = events.data?.total ?? items.length
+  const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE))
 
   const communities = useAsync((signal) => listCommunities(signal), [], { enabled: createOpen })
 
@@ -88,7 +96,7 @@ export function EventsPage() {
     <Container className="py-8">
       <PageHeader
         eyebrow="Jadwal"
-        title="Sesi padel dan tenis"
+        title="Semua sesi"
         description="Saring berdasarkan cabang olahraga, status, atau sesi yang kamu ikuti."
         actions={
           <Button onClick={() => update({ buat: '1' })}>
@@ -98,7 +106,7 @@ export function EventsPage() {
         }
       />
 
-      <div className="mb-6 flex flex-col gap-4 rounded-lg border border-border bg-card p-4">
+      <div className="mb-6 flex flex-col gap-4 rounded-sm border border-border bg-card p-4">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
           <div className="space-y-2">
             <Label>Cabang olahraga</Label>
@@ -217,10 +225,19 @@ export function EventsPage() {
       ) : null}
 
       {items.length > 0 ? (
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {items.map((event) => (
-            <EventCard key={event.id} event={event} />
-          ))}
+        <div className="space-y-6">
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {items.map((event) => (
+              <EventCard key={event.id} event={event} />
+            ))}
+          </div>
+          {totalPages > 1 ? (
+            <Pagination
+              page={page}
+              totalPages={totalPages}
+              onPageChange={(nextPage: number) => update({ page: String(nextPage) })}
+            />
+          ) : null}
         </div>
       ) : null}
 

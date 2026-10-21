@@ -65,7 +65,7 @@ export function DashboardPage() {
         }
       />
 
-      <div className="mb-8 grid grid-cols-2 gap-4 rounded-lg border border-border bg-card p-5 sm:grid-cols-4">
+      <div className="mb-8 grid grid-cols-2 gap-4 rounded-sm border border-border bg-card p-5 sm:grid-cols-4">
         <StatTile label="Level" value={profile.data?.level ?? '-'} hint={formatLevel(profile.data?.level ?? 1)} />
         <StatTile
           label="Rating"
@@ -93,7 +93,7 @@ export function DashboardPage() {
               <EmptyState
                 icon={<FiCalendar />}
                 title="Belum ikut sesi mendatang"
-                description="Cari sesi padel atau tenis di komunitasmu, lalu daftar."
+                description="Cari sesi di komunitasmu, lalu daftar."
                 action={
                   <Button size="sm" asChild>
                     <Link to="/sesi">Cari sesi</Link>
@@ -144,7 +144,7 @@ export function DashboardPage() {
         </div>
 
         <aside className="space-y-4">
-          <div className="rounded-lg border border-border bg-card p-5">
+          <div className="rounded-sm border border-border bg-card p-5">
             <h2 className="font-display text-lg uppercase">Kabar terbaru</h2>
             <p className="mt-2 text-sm text-muted-foreground">
               Pendaftaran diterima, slot terbuka, skor menunggu konfirmasi, dan hasil
@@ -155,10 +155,10 @@ export function DashboardPage() {
             </Button>
           </div>
 
-          <div className="rounded-lg border border-border bg-card p-5">
+          <div className="rounded-sm border border-border bg-card p-5">
             <h2 className="font-display text-lg uppercase">Profil</h2>
             <p className="mt-2 text-sm text-muted-foreground">
-              Perbarui nama dan warna avatar yang tampil di papan peringkat.
+              Perbarui nama dan warna avatar yang tampil di daftar peserta dan peringkat sesi.
             </p>
             <Button variant="outline" size="sm" className="mt-3" asChild>
               <Link to="/app/profil">Atur profil</Link>

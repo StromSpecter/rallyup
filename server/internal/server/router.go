@@ -46,7 +46,6 @@ func NewRouter(cfg *config.Config, logger *slog.Logger, h *handler.Handler, toke
 			r.Get("/events", h.ListEvents)
 			r.Get("/events/{eventID}", h.GetEvent)
 			r.Get("/events/{eventID}/matches", h.EventMatches)
-			r.Get("/leaderboard", h.Leaderboard)
 			r.Get("/players/{userID}", h.GetPlayer)
 			r.Get("/players/{userID}/matches", h.PlayerHistory)
 			r.Get("/matches/{matchID}", h.GetMatch)
@@ -70,6 +69,7 @@ func NewRouter(cfg *config.Config, logger *slog.Logger, h *handler.Handler, toke
 			r.Post("/events/{eventID}/pairings", h.GeneratePairings)
 			r.Post("/events/{eventID}/close", h.CloseEvent)
 
+			r.Post("/matches/{matchID}/substitute", h.SubstituteMatchPlayer)
 			r.Post("/matches/{matchID}/score", h.SubmitScore)
 			r.Post("/matches/{matchID}/score/{scoreID}/confirm", h.ConfirmScore)
 			r.Post("/matches/{matchID}/score/{scoreID}/dispute", h.DisputeScore)
@@ -83,7 +83,6 @@ func NewRouter(cfg *config.Config, logger *slog.Logger, h *handler.Handler, toke
 		// Stream publik tidak butuh identitas karena datanya memang publik.
 		r.Group(func(r chi.Router) {
 			r.Get("/stream/events/{eventID}", h.StreamEvent)
-			r.Get("/stream/leaderboard", h.StreamLeaderboard)
 		})
 	})
 

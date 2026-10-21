@@ -162,6 +162,20 @@ func (r *MatchRepo) ReplaceByEvent(ctx context.Context, eventID uuid.UUID) error
 	return mapErr(err)
 }
 
+// ReplacePlayer menukar satu pemain di pertandingan yang belum dimainkan.
+func (r *MatchRepo) ReplacePlayer(ctx context.Context, matchID, fromUserID, toUserID uuid.UUID) error {
+	tag, err := r.pool.Exec(ctx,
+		`update match_players set user_id = $3 where match_id = $1 and user_id = $2`,
+		matchID, fromUserID, toUserID)
+	if err != nil {
+		return mapErr(err)
+	}
+	if tag.RowsAffected() == 0 {
+		return domain.ErrNotFound
+	}
+	return nil
+}
+
 func (r *MatchRepo) MarkFinished(ctx context.Context, matchID uuid.UUID, playedAt time.Time) error {
 	_, err := r.pool.Exec(ctx,
 		`update matches set status = 'finished', played_at = $2 where id = $1`, matchID, playedAt)

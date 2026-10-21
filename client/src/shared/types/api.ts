@@ -2,7 +2,7 @@
 // Kalau server berubah, ubah di sini dulu supaya TypeScript menandai
 // pemakaian yang perlu disesuaikan.
 
-export type Sport = 'padel' | 'tennis'
+export type Sport = 'padel' | 'tennis' | 'badminton' | 'basket'
 export type EventFormat = 'doubles' | 'singles'
 export type EventStatus = 'draft' | 'published' | 'closed' | 'cancelled'
 export type RegistrationStatus = 'joined' | 'waitlist' | 'cancelled'
@@ -10,7 +10,6 @@ export type MatchStatus = 'scheduled' | 'finished' | 'disputed'
 export type ScoreStatus = 'pending' | 'confirmed' | 'disputed'
 export type TeamSide = 'A' | 'B'
 export type MemberRole = 'owner' | 'moderator' | 'member'
-export type LeaderboardKind = 'skill' | 'season' | 'participation'
 
 export type User = {
   id: string
@@ -126,21 +125,6 @@ export type PlayerProfile = {
   totalWins: number
 }
 
-export type LeaderboardRow = {
-  rank: number
-  userId: string
-  name: string
-  avatarColor: string
-  skillRating: number
-  seasonPoints: number
-  participation: number
-  matches: number
-  wins: number
-  losses: number
-  reliability: number
-  provisional: boolean
-}
-
 export type Notification = {
   id: string
   userId: string
@@ -157,9 +141,17 @@ export type EventDetail = {
   registrations: Registration[]
   matches: Match[]
   standings: EventStanding[]
+  bench: BenchPlayer[]
   myStatus?: RegistrationStatus
   myRole?: MemberRole
   canManage: boolean
+}
+
+export type BenchPlayer = {
+  userId: string
+  name: string
+  avatarColor: string
+  roundsPlayed: number
 }
 
 export type EventStanding = {
@@ -169,25 +161,11 @@ export type EventStanding = {
   avatarColor: string
   matches: number
   wins: number
+  draws: number
   losses: number
   points: number
   setsWon: number
   setsLost: number
-}
-
-export type LeaderboardBoard = {
-  community: Community
-  sport: Sport
-  kind: LeaderboardKind
-  rows: LeaderboardRow[]
-}
-
-/** Papan peringkat yang didorong lewat SSE. Server hanya mengirim papan skill. */
-export type LeaderboardUpdate = {
-  communitySlug: string
-  sport: Sport
-  kind: LeaderboardKind
-  rows: LeaderboardRow[]
 }
 
 export type AuthResponse = {
@@ -224,11 +202,4 @@ export type MatchUpdate = {
   checkedInCount?: number
   joined?: number
   checkedIn?: number
-}
-
-export type LeaderboardPush = {
-  communitySlug: string
-  sport: Sport
-  kind: LeaderboardKind
-  rows: LeaderboardRow[]
 }

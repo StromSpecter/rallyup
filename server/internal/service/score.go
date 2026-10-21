@@ -179,7 +179,6 @@ func (s *ScoreService) Confirm(ctx context.Context, userID, scoreID uuid.UUID) (
 	}
 
 	s.publishMatch(ctx, match, confirmed)
-	s.publishLeaderboard(ctx, match)
 	return confirmed, nil
 }
 
@@ -354,27 +353,5 @@ func (s *ScoreService) publishMatch(ctx context.Context, match domain.Match, sco
 		"matchId": match.ID.String(),
 		"status":  match.Status,
 		"score":   score,
-	})
-}
-
-func (s *ScoreService) publishLeaderboard(ctx context.Context, match domain.Match) {
-	event, err := s.events.FindByID(ctx, match.EventID)
-	if err != nil {
-		return
-	}
-	rows, err := s.ratings.Leaderboard(ctx, domain.LeaderboardFilter{
-		CommunityID: event.CommunityID,
-		Sport:       event.Sport,
-		Kind:        domain.LeaderboardSkill,
-		Limit:       50,
-	})
-	if err != nil {
-		return
-	}
-	s.broker.PublishNamed(stream.TopicLeaderboard(event.CommunitySlug, string(event.Sport)), "leaderboard", map[string]any{
-		"communitySlug": event.CommunitySlug,
-		"sport":         event.Sport,
-		"kind":          domain.LeaderboardSkill,
-		"rows":          rows,
 	})
 }

@@ -1,9 +1,9 @@
-import { FiLogOut, FiMenu, FiUser, FiGrid } from 'react-icons/fi'
+import { FiArrowUpRight, FiLogOut, FiMenu, FiUser, FiGrid } from 'react-icons/fi'
 import { Link, NavLink, Outlet, useNavigate } from 'react-router-dom'
 
 import { useAuth } from '@/app/auth'
 import { Container } from '@/shared/components/Container'
-import { RallyUpMark } from '@/shared/components/Marks'
+import { RallyUpWordmark } from '@/shared/components/Marks'
 import { ThemeToggle } from '@/shared/components/ThemeToggle'
 import { Avatar } from '@/shared/components/Avatar'
 import { Button } from '@/shared/components/ui/button'
@@ -27,15 +27,14 @@ import { NotificationBell } from '@/features/notifications/components/Notificati
 
 const PUBLIC_NAV = [
   { to: '/', label: 'Beranda', end: true },
+  { to: '/sesi', label: 'Jelajah olahraga', end: false },
   { to: '/komunitas', label: 'Komunitas', end: false },
-  { to: '/sesi', label: 'Sesi', end: false },
-  { to: '/peringkat', label: 'Peringkat', end: false },
 ]
 
 function navClass({ isActive }: { isActive: boolean }) {
   return [
-    'rounded-sm px-3 py-2 text-sm font-medium transition-colors',
-    isActive ? 'text-foreground' : 'text-muted-foreground hover:text-foreground',
+    'text-sm transition-colors',
+    isActive ? 'font-semibold text-foreground' : 'text-muted-foreground hover:text-foreground',
   ].join(' ')
 }
 
@@ -52,19 +51,18 @@ export function AppShell() {
     <div className="flex min-h-dvh flex-col">
       <a
         href="#konten"
-        className="sr-only focus:not-sr-only focus:absolute focus:top-2 focus:left-2 focus:z-50 focus:rounded-md focus:bg-primary focus:px-4 focus:py-2 focus:text-sm focus:font-medium focus:text-primary-foreground"
+        className="sr-only focus:not-sr-only focus:absolute focus:top-2 focus:left-2 focus:z-50 focus:rounded-sm focus:bg-primary focus:px-4 focus:py-2 focus:text-sm focus:font-medium focus:text-primary-foreground"
       >
         Lewati ke konten
       </a>
 
       <header className="sticky top-0 z-40 border-b border-border bg-background/95 backdrop-blur">
-        <Container className="flex h-16 items-center justify-between gap-4">
-          <Link to="/" className="flex items-center gap-2.5">
-            <RallyUpMark className="size-8" />
-            <span className="font-display text-base tracking-wide uppercase">RallyUp</span>
+        <Container className="flex h-20 items-center justify-between gap-4">
+          <Link to="/" aria-label="RallyUp, ke beranda" className="flex items-center">
+            <RallyUpWordmark className="text-3xl" />
           </Link>
 
-          <nav aria-label="Navigasi utama" className="hidden items-center gap-1 md:flex">
+          <nav aria-label="Navigasi utama" className="hidden items-center gap-8 md:flex">
             {PUBLIC_NAV.map((item) => (
               <NavLink key={item.to} to={item.to} end={item.end} className={navClass}>
                 {item.label}
@@ -85,7 +83,7 @@ export function AppShell() {
                 <NotificationBell />
                 <Dropdown>
                   <DropdownTrigger
-                    className="inline-flex items-center gap-2 rounded-md border border-border py-1 pr-2 pl-1 transition-colors hover:bg-accent"
+                    className="inline-flex items-center gap-2 rounded-sm border border-border py-1 pr-2 pl-1 transition-colors hover:bg-accent"
                     aria-label="Menu akun"
                   >
                     <Avatar name={user.name} color={user.avatarColor} size="sm" />
@@ -115,15 +113,18 @@ export function AppShell() {
                 <Button variant="ghost" size="sm" asChild>
                   <Link to="/masuk">Masuk</Link>
                 </Button>
-                <Button size="sm" asChild>
-                  <Link to="/daftar">Daftar</Link>
+                <Button size="sm" className="bg-rally font-semibold text-ink hover:bg-rally/85" asChild>
+                  <Link to="/daftar">
+                    Gabung Rallyup
+                    <FiArrowUpRight aria-hidden="true" />
+                  </Link>
                 </Button>
               </div>
             )}
 
             <Sheet>
               <SheetTrigger
-                className="inline-flex size-9 items-center justify-center rounded-md border border-border text-foreground transition-colors hover:bg-accent md:hidden"
+                className="inline-flex size-9 items-center justify-center rounded-sm border border-border text-foreground transition-colors hover:bg-accent md:hidden"
                 aria-label="Buka menu"
               >
                 <FiMenu aria-hidden="true" className="size-4" />
@@ -179,9 +180,9 @@ export function AppShell() {
                           <Link to="/masuk">Masuk</Link>
                         </SheetClose>
                       </Button>
-                      <Button asChild>
+                      <Button asChild className="bg-rally font-semibold text-ink hover:bg-rally/85">
                         <SheetClose asChild>
-                          <Link to="/daftar">Daftar</Link>
+                          <Link to="/daftar">Gabung Rallyup</Link>
                         </SheetClose>
                       </Button>
                     </>
@@ -197,28 +198,70 @@ export function AppShell() {
         <Outlet />
       </main>
 
-      <footer className="border-t border-border">
-        <Container className="flex flex-col gap-6 py-10 sm:flex-row sm:items-start sm:justify-between">
-          <div className="space-y-3">
-            <div className="flex items-center gap-2.5">
-              <RallyUpMark className="size-8" />
-              <span className="font-display text-base tracking-wide uppercase">RallyUp</span>
-            </div>
-            <p className="max-w-sm text-sm text-muted-foreground">
-              Pengelolaan fun match padel dan tenis: sesi, pasangan yang seimbang, dan rating
-              komunitas yang dihitung dari hasil terverifikasi.
+      <footer className="bg-ink text-white">
+        <Container className="grid gap-10 py-14 sm:grid-cols-2 lg:grid-cols-[1.5fr_1fr_1fr]">
+          <div className="space-y-4">
+            <RallyUpWordmark className="text-5xl" arrowClassName="text-rally" />
+            <p className="max-w-sm text-sm text-white/70">
+              Sesi rutin, pasangan yang disusun dari rating, dan hasil yang dikonfirmasi
+              kedua pihak. Untuk padel, tenis, badminton, dan basket.
             </p>
           </div>
-          <nav aria-label="Navigasi kaki halaman" className="flex flex-col gap-2 text-sm">
-            {PUBLIC_NAV.map((item) => (
-              <Link key={item.to} to={item.to} className="text-muted-foreground hover:text-foreground">
-                {item.label}
-              </Link>
-            ))}
+
+          <nav aria-label="Jelajah" className="space-y-4">
+            <p className="text-xs font-semibold tracking-[0.12em] text-white/50 uppercase">
+              Jelajah
+            </p>
+            <ul className="space-y-2 text-sm">
+              <li>
+                <Link to="/sesi" className="text-white/80 hover:text-white">
+                  Sesi terdekat
+                </Link>
+              </li>
+              <li>
+                <Link to="/komunitas" className="text-white/80 hover:text-white">
+                  Komunitas
+                </Link>
+              </li>
+            </ul>
+          </nav>
+
+          <nav aria-label="Akun" className="space-y-4">
+            <p className="text-xs font-semibold tracking-[0.12em] text-white/50 uppercase">Akun</p>
+            <ul className="space-y-2 text-sm">
+              {user ? (
+                <>
+                  <li>
+                    <Link to="/app" className="text-white/80 hover:text-white">
+                      Dashboard
+                    </Link>
+                  </li>
+                  <li>
+                    <Link to="/app/profil" className="text-white/80 hover:text-white">
+                      Profil
+                    </Link>
+                  </li>
+                </>
+              ) : (
+                <>
+                  <li>
+                    <Link to="/masuk" className="text-white/80 hover:text-white">
+                      Masuk
+                    </Link>
+                  </li>
+                  <li>
+                    <Link to="/daftar" className="text-white/80 hover:text-white">
+                      Buat akun
+                    </Link>
+                  </li>
+                </>
+              )}
+            </ul>
           </nav>
         </Container>
-        <Container className="flex flex-col gap-2 border-t border-border py-4 text-xs text-muted-foreground sm:flex-row sm:items-center sm:justify-between">
-          <p>RallyUp. Dibuat untuk komunitas padel dan tenis di Indonesia.</p>
+
+        <Container className="flex flex-col gap-2 border-t border-white/15 py-5 text-xs text-white/60 sm:flex-row sm:items-center sm:justify-between">
+          <p>© 2026 RallyUp. Main, terhubung, ulangi.</p>
           <p>Rating memakai Elo dan hanya berubah setelah skor dikonfirmasi.</p>
         </Container>
       </footer>

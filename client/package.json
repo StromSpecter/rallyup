@@ -29,7 +29,8 @@
     "react-icons": "^5.7.0",
     "react-router-dom": "^7.18.4",
     "sonner": "^2.0.8",
-    "tailwind-merge": "^3.7.0"
+    "tailwind-merge": "^3.7.0",
+    "snitchui": "^1.6.0"
   },
   "devDependencies": {
     "@tailwindcss/vite": "^4.3.3",

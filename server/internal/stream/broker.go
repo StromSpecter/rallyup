@@ -102,10 +102,5 @@ func (b *Broker) PublishNamed(topic, name string, data any) {
 // TopicEvent membangun nama topik untuk satu event.
 func TopicEvent(id string) string { return "event:" + id }
 
-// TopicLeaderboard membangun nama topik untuk papan peringkat satu komunitas.
-func TopicLeaderboard(communitySlug string, sport string) string {
-	return "leaderboard:" + communitySlug + ":" + sport
-}
-
 // TopicUser membangun nama topik notifikasi pribadi.
 func TopicUser(id string) string { return "user:" + id }

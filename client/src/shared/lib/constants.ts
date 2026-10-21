@@ -4,7 +4,6 @@
 import type {
   EventFormat,
   EventStatus,
-  LeaderboardKind,
   MatchStatus,
   MemberRole,
   RegistrationStatus,
@@ -16,17 +15,19 @@ import type {
 // Dipakai di halaman profil supaya pengguna memilih dari warna yang benar-benar
 // disimpan, bukan input bebas yang bisa ditolak server.
 export const AVATAR_COLORS: { value: string; label: string }[] = [
-  { value: '#0E4D3A', label: 'Hijau lapangan' },
-  { value: '#8A5A00', label: 'Cokelat tanah' },
-  { value: '#1F3A5F', label: 'Biru malam' },
+  { value: '#174BE0', label: 'Biru rally' },
+  { value: '#101B30', label: 'Navy malam' },
+  { value: '#0E5A6B', label: 'Teal lapangan' },
   { value: '#6B2D3C', label: 'Merah marun' },
-  { value: '#3F4A0E', label: 'Zaitun' },
   { value: '#4A2C5E', label: 'Ungu tua' },
+  { value: '#5C4A00', label: 'Cokelat tanah' },
 ]
 
 export const SPORTS: { value: Sport; label: string; short: string }[] = [
   { value: 'padel', label: 'Padel', short: 'Padel' },
   { value: 'tennis', label: 'Tenis', short: 'Tenis' },
+  { value: 'badminton', label: 'Badminton', short: 'Badminton' },
+  { value: 'basket', label: 'Basket', short: 'Basket' },
 ]
 
 export function sportLabel(sport: Sport): string {
@@ -72,12 +73,6 @@ export const ROLE_LABELS: Record<MemberRole, string> = {
   moderator: 'Moderator',
   member: 'Anggota',
 }
-
-export const LEADERBOARD_KINDS: { value: LeaderboardKind; label: string; hint: string }[] = [
-  { value: 'skill', label: 'Rating skill', hint: 'Dihitung dari hasil pertandingan terverifikasi.' },
-  { value: 'season', label: 'Poin musim', hint: 'Menang 3 poin, ikut bermain 1 poin.' },
-  { value: 'participation', label: 'Partisipasi', hint: 'Jumlah pertandingan terverifikasi.' },
-]
 
 // Server memakai ambang ini untuk status provisional. Angkanya dipakai juga di
 // layar supaya kalimat "butuh N pertandingan lagi" bisa dihitung.

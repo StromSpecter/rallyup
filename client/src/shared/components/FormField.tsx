@@ -1,10 +1,17 @@
-import { useId } from 'react'
+import { useId, Children, isValidElement } from 'react'
 import type { ReactNode } from 'react'
 
 import { cn } from '@/shared/lib/utils'
 import { Input } from '@/shared/components/ui/input'
 import { Label } from '@/shared/components/ui/label'
 import { Textarea } from '@/shared/components/ui/textarea'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/shared/components/ui/select'
 
 // Satu tempat untuk memasangkan label, petunjuk, dan pesan galat dengan
 // kontrolnya. Dipakai semua formulir supaya tidak ada input tanpa label yang
@@ -104,23 +111,51 @@ export function SelectField({
   error,
   className,
   children,
-  ...props
-}: CommonProps & Omit<React.ComponentPropsWithoutRef<'select'>, 'className' | 'id'>) {
+  value,
+  onChange,
+  disabled,
+  required,
+}: CommonProps &
+  Omit<React.ComponentPropsWithoutRef<'select'>, 'className' | 'id' | 'children'> & {
+    children?: ReactNode
+  }) {
+  const isEmpty = value === '' || value == null
+  const radixValue = isEmpty ? '__empty' : String(value)
+
+  const items = Children.toArray(children)
+    .filter(isValidElement)
+    .map((child) => {
+      const optionValue = (child.props as { value?: unknown }).value
+      const itemValue = optionValue === '' || optionValue == null ? '__empty' : String(optionValue)
+      return (
+        <SelectItem key={itemValue} value={itemValue}>
+          {(child.props as { children?: ReactNode }).children}
+        </SelectItem>
+      )
+    })
+
   return (
     <FieldShell label={label} hint={hint} error={error} className={className}>
       {({ id, describedBy }) => (
-        <select
-          id={id}
-          aria-invalid={error ? true : undefined}
-          aria-describedby={describedBy}
-          className={cn(
-            'flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors focus-visible:ring-1 focus-visible:ring-ring focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50',
-            error && 'border-destructive',
-          )}
-          {...props}
+        <Select
+          value={radixValue}
+          onValueChange={(next) => {
+            const original = next === '__empty' ? '' : next
+            onChange?.({ target: { value: original } } as React.ChangeEvent<HTMLSelectElement>)
+          }}
+          disabled={disabled}
+          required={required}
         >
-          {children}
-        </select>
+          <SelectTrigger
+            id={id}
+            aria-invalid={error ? true : undefined}
+            aria-describedby={describedBy}
+            className={cn(error && 'border-destructive')}
+          >
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>{items}</SelectContent>
+        </Select>
       )}
     </FieldShell>
   )

@@ -5,68 +5,69 @@
 @custom-variant dark (&:where(.dark, .dark *));
 
 @theme {
-  --font-sans: 'Archivo', ui-sans-serif, system-ui, -apple-system, sans-serif;
-  --font-display: 'Archivo Black', 'Archivo', ui-sans-serif, system-ui, sans-serif;
+  --font-sans: 'Inter', ui-sans-serif, system-ui, -apple-system, sans-serif;
+  --font-display: 'Barlow Condensed', 'Inter', ui-sans-serif, system-ui, sans-serif;
 
-  /* Radius kecil dan konsisten: tombol utama bukan pil penuh. */
-  --radius-sm: 3px;
+  /* Radius kecil dan konsisten. Tombol 4px, kartu 4px, pil 100px dipakai
+     terpisah lewat rounded-full pada filter. */
+  --radius-sm: 4px;
   --radius-md: 6px;
   --radius-lg: 10px;
-  --radius-xl: 12px;
+  --radius-xl: 14px;
 
-  /* Palet identitas. Dipakai langsung oleh motif garis lapangan dan aksen. */
-  --color-ink: #0c0c0d;
-  --color-paper: #f4f1e9;
-  --color-court: #0e4d3a;
-  --color-rally: #ffd100;
+  /* Palet identitas dari berkas Figma `rallyup`. Biru lapangan sebagai warna
+     inti, navy untuk teks, lime sebagai satu aksen. */
+  --color-brand: #174be0;
+  --color-ink: #101b30;
+  --color-rally: #d5fb59;
 }
 
 /* Tema terang adalah bawaan. Nilai di bawah adalah rasio kontras yang sudah
    diperiksa terhadap WCAG AA untuk seluruh pasangan teks/latar yang dipakai. */
 :root {
-  --background: #f4f1e9;
-  --foreground: #0c0c0d;
+  --background: #ffffff;
+  --foreground: #101b30;
   --card: #ffffff;
-  --card-foreground: #0c0c0d;
-  --primary: #0e4d3a;
-  --primary-foreground: #f4f1e9;
-  --secondary: #e4dfd2;
-  --secondary-foreground: #0c0c0d;
-  --muted: #e8e3d7;
-  --muted-foreground: #57534b;
-  --accent: #e4dfd2;
-  --accent-foreground: #0c0c0d;
+  --card-foreground: #101b30;
+  --primary: #174be0;
+  --primary-foreground: #ffffff;
+  --secondary: #f5f6f2;
+  --secondary-foreground: #101b30;
+  --muted: #f5f6f2;
+  --muted-foreground: #626b7a;
+  --accent: #d5fb59;
+  --accent-foreground: #101b30;
   --destructive: #b3261e;
-  --destructive-foreground: #fffdf7;
-  --border: #d9d3c2;
-  --input: #8e8776;
-  --ring: #0e4d3a;
-  --overlay: rgb(12 12 13 / 0.55);
-  --court-line: #cfc8b5;
+  --destructive-foreground: #ffffff;
+  --border: #dadfd9;
+  --input: #b6bcb4;
+  --ring: #174be0;
+  --overlay: rgb(16 27 48 / 0.55);
+  --hairline: #dadfd9;
 }
 
 .dark {
-  --background: #0c0c0d;
-  --foreground: #f4f1e9;
-  --card: #151517;
-  --card-foreground: #f4f1e9;
-  /* Hijau dinaikkan terangnya supaya bidang tombol tetap terbaca di atas latar
-     gelap, sementara teksnya tetap lolos kontras. */
-  --primary: #1f9e73;
-  --primary-foreground: #05261a;
-  --secondary: #24242a;
-  --secondary-foreground: #f4f1e9;
-  --muted: #232327;
-  --muted-foreground: #a9a59d;
-  --accent: #2a2a31;
-  --accent-foreground: #f4f1e9;
+  --background: #0b1220;
+  --foreground: #f2f4f7;
+  --card: #111a2e;
+  --card-foreground: #f2f4f7;
+  /* Biru dinaikkan terangnya supaya bidang tombol tetap terbaca di atas latar
+     gelap, sementara teks navy tetap lolos kontras. */
+  --primary: #5b8def;
+  --primary-foreground: #08101f;
+  --secondary: #18223a;
+  --secondary-foreground: #f2f4f7;
+  --muted: #18223a;
+  --muted-foreground: #9aa6bf;
+  --accent: #d5fb59;
+  --accent-foreground: #101b30;
   --destructive: #ff6b5e;
   --destructive-foreground: #2b0705;
-  --border: #38383f;
-  --input: #6e6e78;
-  --ring: #1f9e73;
-  --overlay: rgb(0 0 0 / 0.68);
-  --court-line: #2f2f36;
+  --border: #26304a;
+  --input: #3a4763;
+  --ring: #5b8def;
+  --overlay: rgb(0 0 0 / 0.7);
+  --hairline: #26304a;
 }
 
 @theme inline {
@@ -114,6 +115,13 @@
     text-wrap: balance;
   }
 
+  /* Judul memakai Barlow Condensed ExtraBold seperti di berkas Figma. Aturan ini
+     kalah dari utilitas font-weight yang ditulis eksplisit, jadi teks yang butuh
+     bobot lain tetap bisa menimpanya. */
+  .font-display {
+    font-weight: 800;
+  }
+
   /* Fokus selalu terlihat, termasuk pada tautan dan kontrol bawaan peramban. */
   :focus-visible {
     outline: 2px solid var(--ring);
@@ -139,29 +147,17 @@
 }
 
 @layer components {
-  /* Motif garis lapangan. Dipakai sebagai pemisah bagian, bukan hiasan:
-     setiap pemakaian menggantikan garis border biasa. */
-  .court-rule {
+  /* Pemisah bagian: garis rambut tipis, menggantikan border biasa. */
+  .hairline {
     height: 1px;
-    background: var(--border);
+    background: var(--hairline);
   }
 
-  /* Garis lapangan tipis di dalam tabel peringkat. */
-  .court-keyline {
-    border-left: 1px solid var(--border);
-  }
-
-  /* Latar hero: garis tengah dan garis servis, seperti setengah lapangan
-     dilihat dari atas. Tanpa gradien berwarna, hanya garis. */
-  .court-field {
-    background-image:
-      linear-gradient(to right, transparent calc(50% - 0.5px), var(--court-line) 50%, transparent calc(50% + 0.5px)),
-      repeating-linear-gradient(
-        to bottom,
-        transparent 0 72px,
-        var(--court-line) 72px,
-        var(--court-line) 73px
-      );
+  /* Bidang merek: blok biru penuh untuk panel yang ingin berdiri sendiri,
+     seperti sisi kiri halaman masuk. */
+  .brand-panel {
+    background-color: var(--color-brand);
+    color: #ffffff;
   }
 }
 

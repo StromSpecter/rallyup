@@ -8,7 +8,6 @@ type Services struct {
 	Community    *CommunityService
 	Event        *EventService
 	Score        *ScoreService
-	Leaderboard  *LeaderboardService
 	Player       *PlayerService
 	Notification *NotificationService
 }

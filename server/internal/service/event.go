@@ -122,6 +122,10 @@ func (s *EventService) List(ctx context.Context, f domain.ListEventsFilter) ([]d
 	return s.events.List(ctx, f)
 }
 
+func (s *EventService) Count(ctx context.Context, f domain.ListEventsFilter) (int, error) {
+	return s.events.Count(ctx, f)
+}
+
 // EventDetail menggabungkan event, peserta, dan pertandingan dalam satu
 // pembacaan supaya halaman detail cukup satu permintaan.
 type EventDetail struct {
@@ -129,6 +133,7 @@ type EventDetail struct {
 	Registrations []domain.Registration      `json:"registrations"`
 	Matches       []domain.Match             `json:"matches"`
 	Standings     []domain.EventStanding     `json:"standings"`
+	Bench         []domain.BenchPlayer       `json:"bench"`
 	MyStatus      *domain.RegistrationStatus `json:"myStatus,omitempty"`
 	MyRole        *domain.MemberRole         `json:"myRole,omitempty"`
 	CanManage     bool                       `json:"canManage"`
@@ -150,7 +155,13 @@ func (s *EventService) Detail(ctx context.Context, eventID uuid.UUID, viewerID *
 		return EventDetail{}, err
 	}
 
-	detail := EventDetail{Event: event, Registrations: registrations, Matches: matches, Standings: eventStandings(matches, registrations)}
+	detail := EventDetail{
+		Event:         event,
+		Registrations: registrations,
+		Matches:       matches,
+		Standings:     eventStandings(matches, registrations),
+		Bench:         eventBench(matches, registrations),
+	}
 
 	if viewerID != nil {
 		if reg, err := s.registrations.FindByEventAndUser(ctx, eventID, *viewerID); err == nil && reg != nil {
@@ -198,6 +209,13 @@ func (s *EventService) Update(ctx context.Context, userID, eventID uuid.UUID, in
 	}
 	if event.Capacity < event.JoinedCount {
 		return domain.Event{}, fmt.Errorf("%w: kapasitas di bawah jumlah peserta saat ini", domain.ErrInvalid)
+	}
+	minCapacity := 2
+	if event.Format == domain.FormatDoubles {
+		minCapacity = 4
+	}
+	if event.Capacity < minCapacity {
+		return domain.Event{}, fmt.Errorf("%w: kapasitas format %s minimal %d orang", domain.ErrInvalid, event.Format, minCapacity)
 	}
 
 	updated, err := s.events.Update(ctx, event)
@@ -374,6 +392,84 @@ func (s *EventService) GeneratePairings(ctx context.Context, actorID, eventID uu
 	return created, nil
 }
 
+// SubstitutePlayer menukar pemain di lapangan dengan peserta yang menunggu
+// giliran. Hanya pertandingan yang belum dimainkan yang bisa diubah, dan
+// pengganti tidak boleh sudah terjadwal di lapangan lain pada ronde yang sama.
+func (s *EventService) SubstitutePlayer(ctx context.Context, actorID, matchID, outUserID, inUserID uuid.UUID) (domain.Match, error) {
+	match, err := s.matches.FindByID(ctx, matchID)
+	if err != nil {
+		return domain.Match{}, err
+	}
+	event, err := s.events.FindByID(ctx, match.EventID)
+	if err != nil {
+		return domain.Match{}, err
+	}
+	if err := s.authorizeManage(ctx, event, actorID); err != nil {
+		return domain.Match{}, err
+	}
+	if event.Status == domain.EventClosed || event.Status == domain.EventCancelled {
+		return domain.Match{}, fmt.Errorf("%w: sesi sudah ditutup", domain.ErrInvalidState)
+	}
+	if match.Status != domain.MatchScheduled {
+		return domain.Match{}, fmt.Errorf("%w: hanya pertandingan yang belum dimainkan yang bisa ditukar", domain.ErrInvalidState)
+	}
+	if outUserID == inUserID {
+		return domain.Match{}, fmt.Errorf("%w: pemain yang ditukar harus berbeda", domain.ErrInvalid)
+	}
+
+	outFound := false
+	for _, p := range match.Players {
+		if p.UserID == outUserID {
+			outFound = true
+		}
+		if p.UserID == inUserID {
+			return domain.Match{}, fmt.Errorf("%w: pemain pengganti sudah ada di lapangan ini", domain.ErrInvalid)
+		}
+	}
+	if !outFound {
+		return domain.Match{}, fmt.Errorf("%w: pemain yang ditukar tidak ada di pertandingan ini", domain.ErrNotFound)
+	}
+
+	registration, err := s.registrations.FindByEventAndUser(ctx, event.ID, inUserID)
+	if err != nil {
+		return domain.Match{}, err
+	}
+	if registration == nil || registration.Status != domain.RegJoined || !registration.CheckedIn {
+		return domain.Match{}, fmt.Errorf("%w: pengganti harus peserta yang sudah hadir", domain.ErrInvalidState)
+	}
+
+	matches, err := s.matches.ListByEvent(ctx, event.ID)
+	if err != nil {
+		return domain.Match{}, err
+	}
+	for _, m := range matches {
+		if m.ID == match.ID || m.Round != match.Round {
+			continue
+		}
+		for _, p := range m.Players {
+			if p.UserID == inUserID {
+				return domain.Match{}, fmt.Errorf("%w: pengganti sudah bermain di lapangan %d pada ronde ini", domain.ErrInvalidState, m.Court)
+			}
+		}
+	}
+
+	if err := s.matches.ReplacePlayer(ctx, match.ID, outUserID, inUserID); err != nil {
+		return domain.Match{}, err
+	}
+
+	s.audit.Record(ctx, domain.AuditEntry{
+		ActorID:  actorID,
+		Entity:   "match",
+		EntityID: match.ID.String(),
+		Action:   "player_substituted",
+		Before:   map[string]any{"out": outUserID.String()},
+		After:    map[string]any{"in": inUserID.String()},
+	})
+	s.publishEvent(ctx, event.ID.String(), "match")
+
+	return s.matches.FindByID(ctx, match.ID)
+}
+
 func (s *EventService) Close(ctx context.Context, actorID, eventID uuid.UUID) (domain.Event, error) {
 	event, err := s.events.FindByID(ctx, eventID)
 	if err != nil {
@@ -464,18 +560,18 @@ func validateEventCreate(in CreateEventInput) error {
 		return fmt.Errorf("%w: biaya tidak boleh negatif", domain.ErrInvalid)
 	case in.LevelMin < 1 || in.LevelMax > 7 || in.LevelMax < in.LevelMin:
 		return fmt.Errorf("%w: rentang level harus di antara 1 dan 7", domain.ErrInvalid)
-	case in.Format == domain.FormatDoubles && in.Capacity%4 != 0:
-		return fmt.Errorf("%w: kapasitas format doubles harus kelipatan 4", domain.ErrInvalid)
-	case in.Format == domain.FormatSingles && in.Capacity%2 != 0:
-		return fmt.Errorf("%w: kapasitas format singles harus kelipatan 2", domain.ErrInvalid)
+	case in.Format == domain.FormatDoubles && in.Capacity < 4:
+		return fmt.Errorf("%w: kapasitas format doubles minimal 4 orang", domain.ErrInvalid)
+	case in.Format == domain.FormatSingles && in.Capacity < 2:
+		return fmt.Errorf("%w: kapasitas format singles minimal 2 orang", domain.ErrInvalid)
 	}
 	return nil
 }
 
-
 // eventStandings menghitung peringkat pemain dalam satu sesi dari pertandingan
-// yang sudah selesai dan skornya terkonfirmasi. Pemain yang belum pernah
-// bertanding tidak dimasukkan, supaya tabel tidak berisi baris kosong.
+// yang sudah selesai dan skornya terkonfirmasi. Semua peserta yang masih
+// terdaftar ikut tampil, termasuk yang belum bertanding, dengan statistik nol.
+// Poin: menang 3, seri 1, kalah 0.
 func eventStandings(matches []domain.Match, registrations []domain.Registration) []domain.EventStanding {
 	type row struct {
 		userID      uuid.UUID
@@ -483,6 +579,7 @@ func eventStandings(matches []domain.Match, registrations []domain.Registration)
 		avatarColor string
 		matches     int
 		wins        int
+		draws       int
 		losses      int
 		points      int
 		setsWon     int
@@ -490,13 +587,22 @@ func eventStandings(matches []domain.Match, registrations []domain.Registration)
 	}
 	rows := map[uuid.UUID]*row{}
 
-	ensure := func(p domain.MatchPlayer) *row {
-		if r, ok := rows[p.UserID]; ok {
+	ensure := func(userID uuid.UUID, name, avatarColor string) *row {
+		if r, ok := rows[userID]; ok {
 			return r
 		}
-		r := &row{userID: p.UserID, name: p.UserName, avatarColor: p.AvatarColor}
-		rows[p.UserID] = r
+		r := &row{userID: userID, name: name, avatarColor: avatarColor}
+		rows[userID] = r
 		return r
+	}
+
+	// Peserta terdaftar jadi dasar tabel, supaya pemain tanpa pertandingan
+	// tetap muncul dengan 0 main dan 0 poin.
+	for _, reg := range registrations {
+		if reg.Status != domain.RegJoined {
+			continue
+		}
+		ensure(reg.UserID, reg.UserName, reg.AvatarColor)
 	}
 
 	for _, m := range matches {
@@ -511,13 +617,14 @@ func eventStandings(matches []domain.Match, registrations []domain.Registration)
 				winsB++
 			}
 		}
+		draw := winsA == winsB
 		winner := domain.TeamA
 		if winsB > winsA {
 			winner = domain.TeamB
 		}
 
 		for _, p := range m.Players {
-			r := ensure(p)
+			r := ensure(p.UserID, p.UserName, p.AvatarColor)
 			r.matches++
 			if p.Team == domain.TeamA {
 				for _, set := range m.Score.Sets {
@@ -536,12 +643,15 @@ func eventStandings(matches []domain.Match, registrations []domain.Registration)
 					}
 				}
 			}
-			if p.Team == winner {
+			switch {
+			case draw:
+				r.draws++
+				r.points++
+			case p.Team == winner:
 				r.wins++
 				r.points += 3
-			} else {
+			default:
 				r.losses++
-				r.points += 1
 			}
 		}
 	}
@@ -554,6 +664,7 @@ func eventStandings(matches []domain.Match, registrations []domain.Registration)
 			AvatarColor: r.avatarColor,
 			Matches:     r.matches,
 			Wins:        r.wins,
+			Draws:       r.draws,
 			Losses:      r.losses,
 			Points:      r.points,
 			SetsWon:     r.setsWon,
@@ -568,6 +679,9 @@ func eventStandings(matches []domain.Match, registrations []domain.Registration)
 		if out[i].Wins != out[j].Wins {
 			return out[i].Wins > out[j].Wins
 		}
+		if out[i].Draws != out[j].Draws {
+			return out[i].Draws > out[j].Draws
+		}
 		if (out[i].SetsWon - out[i].SetsLost) != (out[j].SetsWon - out[j].SetsLost) {
 			return (out[i].SetsWon - out[i].SetsLost) > (out[j].SetsWon - out[j].SetsLost)
 		}
@@ -581,4 +695,51 @@ func eventStandings(matches []domain.Match, registrations []domain.Registration)
 		out[i].Rank = i + 1
 	}
 	return out
+}
+
+// eventBench mengembalikan peserta hadir yang tidak bermain di ronde paling
+// akhir. Ronde terakhir dipakai karena rotasi selalu berjalan maju: begitu
+// ronde baru disusun, daftar tunggu ikut berganti.
+func eventBench(matches []domain.Match, registrations []domain.Registration) []domain.BenchPlayer {
+	latest := 0
+	for _, m := range matches {
+		if m.Round > latest {
+			latest = m.Round
+		}
+	}
+	if latest == 0 {
+		return nil
+	}
+
+	playing := map[uuid.UUID]bool{}
+	played := map[uuid.UUID]int{}
+	for _, m := range matches {
+		for _, p := range m.Players {
+			played[p.UserID]++
+			if m.Round == latest {
+				playing[p.UserID] = true
+			}
+		}
+	}
+
+	bench := make([]domain.BenchPlayer, 0)
+	for _, reg := range registrations {
+		if reg.Status != domain.RegJoined || !reg.CheckedIn || playing[reg.UserID] {
+			continue
+		}
+		bench = append(bench, domain.BenchPlayer{
+			UserID:       reg.UserID,
+			Name:         reg.UserName,
+			AvatarColor:  reg.AvatarColor,
+			RoundsPlayed: played[reg.UserID],
+		})
+	}
+
+	sort.SliceStable(bench, func(i, j int) bool {
+		if bench[i].RoundsPlayed != bench[j].RoundsPlayed {
+			return bench[i].RoundsPlayed < bench[j].RoundsPlayed
+		}
+		return bench[i].Name < bench[j].Name
+	})
+	return bench
 }

@@ -9,11 +9,19 @@ import (
 type Sport string
 
 const (
-	SportPadel  Sport = "padel"
-	SportTennis Sport = "tennis"
+	SportPadel     Sport = "padel"
+	SportTennis    Sport = "tennis"
+	SportBadminton Sport = "badminton"
+	SportBasket    Sport = "basket"
 )
 
-func (s Sport) Valid() bool { return s == SportPadel || s == SportTennis }
+func (s Sport) Valid() bool {
+	switch s {
+	case SportPadel, SportTennis, SportBadminton, SportBasket:
+		return true
+	}
+	return false
+}
 
 type EventFormat string
 
@@ -72,18 +80,6 @@ const (
 	RoleModerator MemberRole = "moderator"
 	RoleMember    MemberRole = "member"
 )
-
-type LeaderboardKind string
-
-const (
-	LeaderboardSkill         LeaderboardKind = "skill"
-	LeaderboardSeason        LeaderboardKind = "season"
-	LeaderboardParticipation LeaderboardKind = "participation"
-)
-
-func (k LeaderboardKind) Valid() bool {
-	return k == LeaderboardSkill || k == LeaderboardSeason || k == LeaderboardParticipation
-}
 
 // CalibrationMatches adalah jumlah pertandingan pertama yang dipakai untuk
 // mengunci rating pemain baru. Di bawah angka ini rating masih provisional dan
@@ -209,21 +205,6 @@ type PlayerRating struct {
 	UpdatedAt     time.Time `json:"updatedAt"`
 }
 
-type LeaderboardRow struct {
-	Rank          int       `json:"rank"`
-	UserID        uuid.UUID `json:"userId"`
-	Name          string    `json:"name"`
-	AvatarColor   string    `json:"avatarColor"`
-	SkillRating   float64   `json:"skillRating"`
-	SeasonPoints  int       `json:"seasonPoints"`
-	Participation int       `json:"participation"`
-	Matches       int       `json:"matches"`
-	Wins          int       `json:"wins"`
-	Losses        int       `json:"losses"`
-	Reliability   float64   `json:"reliability"`
-	Provisional   bool      `json:"provisional"`
-}
-
 // EventStanding adalah peringkat pemain dalam satu sesi, dihitung dari
 // pertandingan yang sudah selesai dan skornya terkonfirmasi.
 type EventStanding struct {
@@ -233,10 +214,21 @@ type EventStanding struct {
 	AvatarColor string    `json:"avatarColor"`
 	Matches     int       `json:"matches"`
 	Wins        int       `json:"wins"`
+	Draws       int       `json:"draws"`
 	Losses      int       `json:"losses"`
 	Points      int       `json:"points"`
 	SetsWon     int       `json:"setsWon"`
 	SetsLost    int       `json:"setsLost"`
+}
+
+// BenchPlayer adalah peserta yang sudah hadir tetapi tidak masuk lapangan
+// pada ronde terakhir yang tersusun. Dipakai untuk menampilkan daftar tunggu
+// rotasi dan pilihan tukar pemain.
+type BenchPlayer struct {
+	UserID       uuid.UUID `json:"userId"`
+	Name         string    `json:"name"`
+	AvatarColor  string    `json:"avatarColor"`
+	RoundsPlayed int       `json:"roundsPlayed"`
 }
 
 type PlayerProfile struct {

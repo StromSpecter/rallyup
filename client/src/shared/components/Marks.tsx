@@ -1,27 +1,45 @@
-import { GiPaddles, GiTennisRacket } from 'react-icons/gi'
+import { FiArrowUpRight } from 'react-icons/fi'
+import { GiBasketballBall, GiPaddles, GiShuttlecock, GiTennisRacket } from 'react-icons/gi'
 import type { IconType } from 'react-icons'
 
+import { cn } from '../lib/utils'
 import type { StreamState } from '../api/sse'
 import type { Sport } from '../types/api'
 
 const SPORT_ICONS: Record<Sport, IconType> = {
   padel: GiPaddles,
   tennis: GiTennisRacket,
+  badminton: GiShuttlecock,
+  basket: GiBasketballBall,
 }
 
-/** Tanda RallyUp: garis lapangan dengan bola di tengahnya. */
-export function RallyUpMark({ className }: { className?: string }) {
+/**
+ * Wordmark RallyUp: nama huruf kecil dengan panah lime, mengikuti berkas Figma.
+ * Warnanya mengikuti warna teks induknya (navy di latar terang, putih di latar
+ * biru), jadi komponen ini tidak pernah menentukan warnanya sendiri.
+ */
+export function RallyUpWordmark({
+  className,
+  arrowClassName = 'text-primary',
+  label = 'RallyUp',
+}: {
+  className?: string
+  arrowClassName?: string
+  label?: string
+}) {
   return (
-    <svg viewBox="0 0 64 64" className={className} aria-hidden="true">
-      <rect width="64" height="64" rx="12" fill="#0E4D3A" />
-      <g stroke="#F4F1E9" strokeWidth="3" opacity="0.85" fill="none">
-        <rect x="10" y="10" width="44" height="44" rx="2" />
-        <line x1="32" y1="10" x2="32" y2="54" />
-        <line x1="10" y1="24" x2="54" y2="24" />
-        <line x1="10" y1="40" x2="54" y2="40" />
-      </g>
-      <circle cx="32" cy="32" r="7" fill="#FFD100" />
-    </svg>
+    <span
+      className={cn(
+        'inline-flex items-end gap-1 font-display leading-none font-extrabold tracking-tight lowercase',
+        className,
+      )}
+    >
+      {label.toLowerCase()}
+      <FiArrowUpRight
+        aria-hidden="true"
+        className={cn('mb-[0.08em] size-[0.42em] shrink-0', arrowClassName)}
+      />
+    </span>
   )
 }
 

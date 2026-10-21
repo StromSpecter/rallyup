@@ -178,8 +178,8 @@ function EventForm({
       <DialogHeader>
         <DialogTitle>{editing ? 'Ubah sesi' : 'Buat sesi'}</DialogTitle>
         <DialogDescription>
-          Waktu memakai zona waktu perangkatmu. Kapasitas doubles harus kelipatan 4,
-          singles kelipatan 2.
+          Waktu memakai zona waktu perangkatmu. Kapasitas minimal 2 orang untuk
+          singles, 4 orang untuk doubles.
         </DialogDescription>
       </DialogHeader>
 
@@ -221,7 +221,7 @@ function EventForm({
           ) : null}
           </>
         ) : (
-          <p className="rounded-md border border-border bg-muted/50 p-3 text-sm text-muted-foreground">
+          <p className="rounded-sm border border-border bg-muted/50 p-3 text-sm text-muted-foreground">
             Komunitas: <span className="font-medium text-foreground">{event?.communityName}</span>
           </p>
         )}
@@ -242,6 +242,8 @@ function EventForm({
           >
             <option value="padel">Padel</option>
             <option value="tennis">Tenis</option>
+            <option value="badminton">Badminton</option>
+            <option value="basket">Basket</option>
           </SelectField>
           <SelectField
             label="Format"
@@ -291,7 +293,7 @@ function EventForm({
             label="Kapasitas"
             type="number"
             required
-            min={2}
+            min={form.format === 'doubles' ? 4 : 2}
             value={form.capacity}
             onChange={(input) => set('capacity', input.target.value)}
           />

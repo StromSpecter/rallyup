@@ -58,7 +58,12 @@ func (h *Handler) ListEvents(w http.ResponseWriter, r *http.Request) {
 		httpx.Error(w, err)
 		return
 	}
-	httpx.JSON(w, http.StatusOK, map[string]any{"items": list})
+	total, err := h.services.Event.Count(r.Context(), filter)
+	if err != nil {
+		httpx.Error(w, err)
+		return
+	}
+	httpx.JSON(w, http.StatusOK, map[string]any{"items": list, "total": total})
 }
 
 type eventBody struct {

@@ -6,7 +6,7 @@ export function LoadingRows({ rows = 3, className }: { rows?: number; className?
   return (
     <div className={cn('flex flex-col gap-3', className)} aria-hidden="true">
       {Array.from({ length: rows }, (_, index) => (
-        <div key={index} className="flex items-center gap-4 rounded-lg border border-border p-4">
+        <div key={index} className="flex items-center gap-4 rounded-sm border border-border p-4">
           <Skeleton className="size-10 rounded-full" />
           <div className="flex-1 space-y-2">
             <Skeleton className="h-4 w-2/5" />

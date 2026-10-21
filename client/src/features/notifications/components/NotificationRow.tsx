@@ -25,7 +25,7 @@ export function NotificationRow({ notification, onRead, className }: Notificatio
         if (unread) onRead(notification)
       }}
       className={cn(
-        'flex items-start gap-3 rounded-md px-3 py-2.5 transition-colors hover:bg-accent',
+        'flex items-start gap-3 rounded-sm px-3 py-2.5 transition-colors hover:bg-accent',
         className,
       )}
     >

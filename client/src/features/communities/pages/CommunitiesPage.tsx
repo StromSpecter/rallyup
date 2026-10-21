@@ -34,8 +34,8 @@ export function CommunitiesPage() {
     <Container className="py-8">
       <PageHeader
         eyebrow="Komunitas"
-        title="Komunitas padel dan tenis"
-        description="Setiap komunitas punya jadwal dan papan peringkatnya sendiri. Gabung untuk ikut sesi berikutnya."
+        title="Komunitas di kotamu"
+        description="Setiap komunitas punya jadwal sesinya sendiri. Gabung untuk ikut sesi berikutnya."
         actions={
           <Button onClick={startCreate}>
             <FiPlus aria-hidden="true" />
@@ -51,7 +51,7 @@ export function CommunitiesPage() {
         <EmptyState
           icon={<FiUsers />}
           title="Belum ada komunitas"
-          description="Jadilah yang pertama membuat komunitas padel atau tenis di kotamu."
+          description="Jadilah yang pertama membuat komunitas di kotamu."
           action={<Button onClick={startCreate}>Buat komunitas</Button>}
         />
       ) : null}
@@ -64,7 +64,7 @@ export function CommunitiesPage() {
         </div>
       ) : null}
 
-      <section className="mt-12 rounded-lg border border-dashed border-border p-6">
+      <section className="mt-12 rounded-sm border border-dashed border-border p-6">
         <h2 className="font-display text-xl uppercase">Belum menemukan yang cocok?</h2>
         <p className="mt-2 max-w-2xl text-sm text-muted-foreground">
           Komunitas di RallyUp dijalankan anggotanya sendiri. Kalau di kotamu belum ada,
@@ -72,7 +72,7 @@ export function CommunitiesPage() {
         </p>
         <div className="mt-4 flex flex-wrap gap-3">
           <Button variant="outline" asChild>
-            <Link to="/peringkat">Lihat papan peringkat</Link>
+            <Link to="/sesi">Lihat sesi</Link>
           </Button>
         </div>
       </section>

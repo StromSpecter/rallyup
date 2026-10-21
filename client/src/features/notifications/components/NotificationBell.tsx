@@ -30,7 +30,7 @@ export function NotificationBell() {
   return (
     <Dropdown>
       <DropdownTrigger
-        className="relative inline-flex size-9 items-center justify-center rounded-md border border-border text-foreground transition-colors hover:bg-accent"
+        className="relative inline-flex size-9 items-center justify-center rounded-sm border border-border text-foreground transition-colors hover:bg-accent"
         aria-label={unreadCount > 0 ? `Notifikasi, ${unreadCount} belum dibaca` : 'Notifikasi'}
       >
         <FiBell aria-hidden="true" className="size-4" />

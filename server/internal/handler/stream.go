@@ -6,7 +6,6 @@ import (
 	"net/http"
 	"time"
 
-	"rallyup/server/internal/domain"
 	"rallyup/server/internal/pkg/httpx"
 	"rallyup/server/internal/stream"
 )
@@ -32,21 +31,6 @@ func (h *Handler) StreamEvent(w http.ResponseWriter, r *http.Request) {
 	}
 
 	sub := h.broker.Subscribe(stream.TopicEvent(eventID.String()))
-	h.serveStream(w, r, sub)
-}
-
-// StreamLeaderboard mengirim papan peringkat terbaru setiap ada skor yang
-// terkonfirmasi. Datanya sama dengan endpoint REST, hanya didorong.
-func (h *Handler) StreamLeaderboard(w http.ResponseWriter, r *http.Request) {
-	communitySlug := r.URL.Query().Get("communitySlug")
-	sport := domain.Sport(r.URL.Query().Get("sport"))
-
-	if _, err := h.services.Leaderboard.Board(r.Context(), communitySlug, sport, domain.LeaderboardSkill, 1); err != nil {
-		httpx.Error(w, err)
-		return
-	}
-
-	sub := h.broker.Subscribe(stream.TopicLeaderboard(communitySlug, string(sport)))
 	h.serveStream(w, r, sub)
 }
 

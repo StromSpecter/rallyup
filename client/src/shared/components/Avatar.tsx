@@ -29,7 +29,7 @@ export function Avatar({ name, color, size = 'md', className }: AvatarProps) {
         SIZES[size],
         className,
       )}
-      style={{ backgroundColor: color, color: '#F4F1E9' }}
+      style={{ backgroundColor: color, color: '#FFFFFF' }}
     >
       {initials(name)}
     </span>

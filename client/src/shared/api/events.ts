@@ -1,11 +1,12 @@
 import { http } from './client'
-import type { Event, EventStanding, Match, Registration, Sport } from '../types/api'
+import type { BenchPlayer, Event, EventStanding, Match, Registration, Sport } from '../types/api'
 
 export type EventDetail = {
   event: Event
   registrations: Registration[]
   matches: Match[]
   standings: EventStanding[]
+  bench: BenchPlayer[]
   myStatus?: Registration['status']
   myRole?: 'owner' | 'moderator' | 'member'
   canManage: boolean
@@ -20,6 +21,7 @@ export type EventFilter = {
   to?: string
   scope?: 'joined' | 'mine'
   limit?: number
+  offset?: number
 }
 
 export type EventPayload = {
@@ -42,8 +44,8 @@ export type EventPayload = {
 export function listEvents(
   filter: EventFilter = {},
   signal?: AbortSignal,
-): Promise<{ items: Event[] }> {
-  return http.get<{ items: Event[] }>('/events', { ...filter }, { signal })
+): Promise<{ items: Event[]; total: number }> {
+  return http.get<{ items: Event[]; total: number }>('/events', { ...filter }, { signal })
 }
 
 export function getEvent(eventId: string, signal?: AbortSignal): Promise<EventDetail> {
@@ -82,6 +84,14 @@ export function generatePairings(
   append = false,
 ): Promise<{ items: Match[] }> {
   return http.post<{ items: Match[] }>(`/events/${eventId}/pairings`, { courts, append })
+}
+
+export function substitutePlayer(
+  matchId: string,
+  outUserId: string,
+  inUserId: string,
+): Promise<Match> {
+  return http.post<Match>(`/matches/${matchId}/substitute`, { outUserId, inUserId })
 }
 
 export function closeEvent(eventId: string): Promise<Event> {

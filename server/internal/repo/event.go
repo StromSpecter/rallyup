@@ -137,3 +137,42 @@ func (r *EventRepo) Counts(ctx context.Context, eventID uuid.UUID) (int, int, in
 	).Scan(&joined, &waitlist, &checkedIn)
 	return joined, waitlist, checkedIn, mapErr(err)
 }
+
+func (r *EventRepo) Count(ctx context.Context, f domain.ListEventsFilter) (int, error) {
+	q := newQuery()
+
+	if f.CommunitySlug != "" {
+		q.where("c.slug = %s", f.CommunitySlug)
+	}
+	if f.Sport != "" {
+		q.where("e.sport = %s", f.Sport)
+	}
+	if len(f.Status) > 0 {
+		q.where("e.status = any(%s)", f.Status)
+	}
+	if f.Query != "" {
+		like := "%" + f.Query + "%"
+		q.where("(e.title ilike %s or e.venue ilike %s or e.city ilike %s)", like, like, like)
+	}
+	if f.From != nil {
+		q.where("e.starts_at >= %s", *f.From)
+	}
+	if f.To != nil {
+		q.where("e.starts_at <= %s", *f.To)
+	}
+	if f.OrganizerID != nil {
+		q.where("e.organizer_id = %s", *f.OrganizerID)
+	}
+	if f.ParticipantID != nil {
+		q.where(`exists (select 1 from event_registrations r
+		                  where r.event_id = e.id and r.user_id = %s and r.status <> 'cancelled')`,
+			*f.ParticipantID)
+	}
+
+	var total int
+	err := r.pool.QueryRow(ctx, "select count(*) from events e join communities c on c.id = e.community_id"+q.clause(), q.args...).Scan(&total)
+	if err != nil {
+		return 0, mapErr(err)
+	}
+	return total, nil
+}

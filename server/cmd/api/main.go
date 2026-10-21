@@ -57,7 +57,6 @@ func main() {
 			store.Matches, store.Ratings, notifications, store.Audit, broker),
 		Score: service.NewScoreService(store.Scores, store.Matches, store.Events,
 			store.Communities, store.Ratings, notifications, store.Audit, broker),
-		Leaderboard:  service.NewLeaderboardService(store.Communities, store.Ratings, broker),
 		Player:       service.NewPlayerService(store.Ratings, store.Matches),
 		Notification: notifications,
 	}

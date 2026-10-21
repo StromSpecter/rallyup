@@ -31,6 +31,7 @@ import {
   getEvent,
   joinEvent,
   leaveEvent,
+  substitutePlayer,
 } from '@/shared/api/events'
 import { useAction } from '@/shared/hooks/useAction'
 import { useAsync } from '@/shared/hooks/useAsync'
@@ -83,8 +84,15 @@ export function EventPage() {
       onSuccess: () => detail.reload(),
     },
   )
-  const close = useAction(() => closeEvent(eventId), {
-    successMessage: 'Sesi ditutup.',
+  const substitution = useAction(
+    (matchId: string, outUserId: string, inUserId: string) =>
+      substitutePlayer(matchId, outUserId, inUserId),
+    {
+      successMessage: 'Pemain ditukar.',
+      onSuccess: () => detail.reload(),
+    },
+  )
+  const close = useAction(() => closeEvent(eventId), {    successMessage: 'Sesi ditutup.',
     onSuccess: () => {
       setCloseOpen(false)
       detail.reload()
@@ -121,7 +129,7 @@ export function EventPage() {
     )
   }
 
-  const { event, registrations, matches, myStatus, canManage } = detail.data
+  const { event, registrations, matches, bench, myStatus, canManage } = detail.data
   const closed = event.status === 'closed' || event.status === 'cancelled'
   const isRegistered = myStatus === 'joined' || myStatus === 'waitlist'
   const shareUrl = typeof window === 'undefined' ? '' : window.location.href
@@ -192,7 +200,7 @@ export function EventPage() {
       <div className="grid gap-8 lg:grid-cols-[2fr_1fr]">
         <div className="min-w-0 space-y-8">
           {event.notes ? (
-            <section className="rounded-lg border border-border bg-card p-5">
+            <section className="rounded-sm border border-border bg-card p-5">
               <Eyebrow>Catatan organizer</Eyebrow>
               <p className="mt-2 text-sm whitespace-pre-line">{event.notes}</p>
             </section>
@@ -213,14 +221,21 @@ export function EventPage() {
                     <Button
                       variant="outline"
                       size="sm"
-                      onClick={() => void pairings.run(Number(courts) || 1, false)}
+                      onClick={() => void pairings.run(Number(courts) || 1, true)}
                       disabled={pairings.pending}
                     >
-                      {pairings.pending ? 'Menyusun...' : 'Susun ulang'}
+                      {pairings.pending ? 'Menyusun...' : 'Ronde berikutnya'}
                     </Button>
                   ) : undefined}
                 />
-                <PairingsBoard matches={matches} signedIn={Boolean(user)} />
+                <PairingsBoard
+                  matches={matches}
+                  bench={bench ?? []}
+                  signedIn={Boolean(user)}
+                  canManage={canManage && !closed}
+                  onSwap={substitution.run}
+                  swapping={substitution.pending}
+                />
               </TabsContent>
 
               <TabsContent value="peringkat" className="space-y-4">
@@ -230,14 +245,15 @@ export function EventPage() {
                 />
                 {detail.data?.standings?.length ? (
                   <div className="space-y-3">
-                    <div className="w-full max-w-full overflow-x-auto rounded-lg border border-border bg-card">
-                      <Table className="min-w-[620px]">
+                    <div className="w-full max-w-full overflow-x-auto rounded-sm border border-border bg-card">
+                      <Table className="min-w-[680px]">
                         <TableHeader>
                           <TableRow className="bg-muted/40">
                             <TableHead className="w-12 text-center font-display">Rank</TableHead>
                             <TableHead>Pemain</TableHead>
                             <TableHead className="text-right">Main</TableHead>
                             <TableHead className="text-right">Menang</TableHead>
+                            <TableHead className="text-right">Seri</TableHead>
                             <TableHead className="text-right">Kalah</TableHead>
                             <TableHead className="hidden text-right sm:table-cell">Set</TableHead>
                             <TableHead className="hidden text-right sm:table-cell">Win rate</TableHead>
@@ -285,6 +301,9 @@ export function EventPage() {
                                   {row.wins}
                                 </TableCell>
                                 <TableCell className="text-right tabular-nums text-muted-foreground">
+                                  {row.draws}
+                                </TableCell>
+                                <TableCell className="text-right tabular-nums text-muted-foreground">
                                   {row.losses}
                                 </TableCell>
                                 <TableCell className="hidden text-right tabular-nums sm:table-cell">
@@ -303,14 +322,14 @@ export function EventPage() {
                       </Table>
                     </div>
                     <p className="text-xs text-muted-foreground">
-                      Menang memberi 3 poin, ikut bermain memberi 1 poin. Hanya pertandingan dengan
-                      skor terkonfirmasi yang dihitung.
+                      Menang memberi 3 poin, seri 1 poin, kalah 0 poin. Peserta yang belum
+                      bertanding tetap tampil dengan 0 main. Hanya pertandingan dengan skor
+                      terkonfirmasi yang dihitung.
                     </p>
                   </div>
                 ) : (
-                  <p className="rounded-lg border border-dashed border-border p-6 text-sm text-muted-foreground">
-                    Belum ada hasil terkonfirmasi. Peringkat akan terisi setelah pertandingan pertama
-                    selesai.
+                  <p className="rounded-sm border border-dashed border-border p-6 text-sm text-muted-foreground">
+                    Belum ada peserta terdaftar. Peringkat akan tampil setelah pemain bergabung.
                   </p>
                 )}
               </TabsContent>
@@ -323,7 +342,7 @@ export function EventPage() {
               hint={`${event.joinedCount} dari ${event.capacity} slot`}
             />
             {isRegistered ? (
-              <p className="rounded-md border border-border bg-muted/40 px-3 py-2 text-sm text-muted-foreground">
+              <p className="rounded-sm border border-border bg-muted/40 px-3 py-2 text-sm text-muted-foreground">
                 {myStatus === 'waitlist'
                   ? 'Kamu ada di daftar tunggu. Slot terbuka akan otomatis mengisi posisimu.'
                   : 'Kamu terdaftar di sesi ini.'}
@@ -339,7 +358,7 @@ export function EventPage() {
         </div>
 
         <aside className="space-y-4">
-          <div className="rounded-lg border border-border bg-card p-5">
+          <div className="rounded-sm border border-border bg-card p-5">
             <Eyebrow>Ringkasan sesi</Eyebrow>
             <dl className="mt-3 space-y-3 text-sm">
               <div className="flex items-center justify-between gap-3">
@@ -384,7 +403,7 @@ export function EventPage() {
             </dl>
           </div>
 
-          <div className="grid grid-cols-3 gap-3 rounded-lg border border-border bg-card p-5">
+          <div className="grid grid-cols-3 gap-3 rounded-sm border border-border bg-card p-5">
             <StatTile label="Peserta" value={event.joinedCount} hint={`dari ${event.capacity}`} />
             <StatTile label="Hadir" value={event.checkedInCount} />
             <StatTile label="Tunggu" value={event.waitlistCount} />
@@ -402,7 +421,7 @@ export function EventPage() {
             </p>
           )}
 
-          <div className="rounded-lg border border-border bg-card p-5">
+          <div className="rounded-sm border border-border bg-card p-5">
             <Eyebrow>Bagikan sesi</Eyebrow>
             <p className="mt-2 text-sm text-muted-foreground">
               Kirim tautan ini ke grup komunitas supaya pemain lain bisa mendaftar.
@@ -423,11 +442,12 @@ export function EventPage() {
           </div>
 
           {canManage ? (
-            <div className="rounded-lg border border-dashed border-border p-5">
+            <div className="rounded-sm border border-dashed border-border p-5">
               <Eyebrow>Alat organizer</Eyebrow>
               <p className="mt-2 text-sm text-muted-foreground">
                 Tandai pemain yang hadir di daftar peserta, lalu susun jadwal. Minimal 4 pemain
-                yang sudah absen.
+                yang sudah absen. Ronde berikutnya otomatis memprioritaskan pemain yang belum
+                turun main.
               </p>
               <div className="mt-3 flex flex-wrap items-end gap-2">
                 <TextField

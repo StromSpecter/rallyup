@@ -24,3 +24,6 @@ server/tmp/
 
 # Logs
 *.log
+
+# MCP Config
+opencode.json

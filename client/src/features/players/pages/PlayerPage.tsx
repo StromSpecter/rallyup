@@ -59,13 +59,13 @@ function RatingCard({ rating, community }: { rating: PlayerRating; community: Co
   const isProvisional = rating.reliability < 1
 
   return (
-    <li className="flex flex-col gap-3 rounded-lg border border-border bg-card p-5">
+    <li className="flex flex-col gap-3 rounded-sm border border-border bg-card p-5">
       <div className="flex flex-wrap items-start justify-between gap-2">
         <div>
           <p className="font-display text-sm uppercase">{sportLabel(rating.sport)}</p>
           {community ? (
             <Link
-              to={`/peringkat?komunitas=${community.slug}&cabang=${rating.sport}`}
+              to={`/komunitas/${community.slug}`}
               className="text-xs text-muted-foreground hover:text-primary"
             >
               {community.name}
@@ -123,9 +123,9 @@ export function PlayerPage() {
         <ErrorState message={profile.error} onRetry={profile.reload} />
         <div className="mt-4">
           <Button variant="outline" asChild>
-            <Link to="/peringkat">
+            <Link to="/sesi">
               <FiArrowLeft aria-hidden="true" />
-              Kembali ke peringkat
+              Kembali ke sesi
             </Link>
           </Button>
         </div>
@@ -144,19 +144,11 @@ export function PlayerPage() {
         eyebrow="Profil pemain"
         title={user.name}
         description={formatLevel(level)}
-        actions={
-          <Button variant="outline" asChild>
-            <Link to="/peringkat">
-              <FiArrowLeft aria-hidden="true" />
-              Papan peringkat
-            </Link>
-          </Button>
-        }
       />
 
       <div className="grid gap-8 lg:grid-cols-[1fr_2fr]">
         <aside className="space-y-4">
-          <div className="flex flex-col items-center gap-3 rounded-lg border border-border bg-card p-6 text-center">
+          <div className="flex flex-col items-center gap-3 rounded-sm border border-border bg-card p-6 text-center">
             <Avatar name={user.name} color={user.avatarColor} size="xl" />
             <div className="space-y-1">
               <p className="font-display text-xl uppercase">{user.name}</p>
@@ -170,7 +162,7 @@ export function PlayerPage() {
             </p>
           </div>
 
-          <div className="grid grid-cols-3 gap-3 rounded-lg border border-border bg-card p-5">
+          <div className="grid grid-cols-3 gap-3 rounded-sm border border-border bg-card p-5">
             <StatTile label="Main" value={totalMatches} />
             <StatTile label="Menang" value={totalWins} />
             <StatTile label="Rasio" value={formatPercent(winRate)} />

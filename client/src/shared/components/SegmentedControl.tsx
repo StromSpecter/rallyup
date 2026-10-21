@@ -3,6 +3,7 @@ import type { ReactNode } from 'react'
 /**
  * Kelompok tombol pilihan. Memakai tombol dengan aria-pressed, bukan tab,
  * karena pilihan di sini mengubah data yang ditampilkan, bukan memindah panel.
+ * Bentuknya pil terpisah, mengikuti filter cabang di berkas Figma.
  */
 export type SegmentedOption<T extends string> = {
   value: T
@@ -28,10 +29,7 @@ export function SegmentedControl<T extends string>({
     <div
       role="group"
       aria-label={label}
-      className={[
-        'inline-flex flex-wrap gap-1 rounded-md border border-border p-1',
-        className ?? '',
-      ].join(' ')}
+      className={['flex flex-wrap gap-2', className ?? ''].join(' ')}
     >
       {options.map((option) => {
         const selected = option.value === value
@@ -42,10 +40,10 @@ export function SegmentedControl<T extends string>({
             aria-pressed={selected}
             onClick={() => onChange(option.value)}
             className={[
-              'rounded-sm px-3 py-1 text-xs font-semibold tracking-wide uppercase transition-colors',
+              'rounded-full border px-4 py-2 text-[13px] font-medium transition-colors',
               selected
-                ? 'bg-primary text-primary-foreground'
-                : 'text-muted-foreground hover:bg-accent hover:text-accent-foreground',
+                ? 'border-ink bg-ink text-white'
+                : 'border-border text-muted-foreground hover:border-foreground/40 hover:text-foreground',
             ].join(' ')}
           >
             {option.label}

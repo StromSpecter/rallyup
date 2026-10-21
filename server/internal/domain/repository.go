@@ -22,13 +22,6 @@ type ListEventsFilter struct {
 	Offset        int
 }
 
-type LeaderboardFilter struct {
-	CommunityID uuid.UUID
-	Sport       Sport
-	Kind        LeaderboardKind
-	Limit       int
-}
-
 type UserRepository interface {
 	Create(ctx context.Context, name, email, passwordHash, avatarColor string) (User, error)
 	FindByEmail(ctx context.Context, email string) (UserWithHash, error)
@@ -49,6 +42,7 @@ type CommunityRepository interface {
 type EventRepository interface {
 	Create(ctx context.Context, e Event) (Event, error)
 	List(ctx context.Context, f ListEventsFilter) ([]Event, error)
+	Count(ctx context.Context, f ListEventsFilter) (int, error)
 	FindByID(ctx context.Context, id uuid.UUID) (Event, error)
 	Update(ctx context.Context, e Event) (Event, error)
 	Counts(ctx context.Context, eventID uuid.UUID) (joined, waitlist, checkedIn int, err error)
@@ -74,6 +68,7 @@ type MatchRepository interface {
 	MarkFinished(ctx context.Context, matchID uuid.UUID, playedAt time.Time) error
 	MarkDisputed(ctx context.Context, matchID uuid.UUID) error
 	ReplaceByEvent(ctx context.Context, eventID uuid.UUID) error
+	ReplacePlayer(ctx context.Context, matchID, fromUserID, toUserID uuid.UUID) error
 	RecentByUser(ctx context.Context, userID uuid.UUID, limit int) ([]Match, error)
 }
 
@@ -89,7 +84,6 @@ type RatingRepository interface {
 	// urutan transaksi, service yang menentukan rumusnya.
 	Get(ctx context.Context, userID, communityID uuid.UUID, sport Sport) (PlayerRating, error)
 	Upsert(ctx context.Context, r PlayerRating) error
-	Leaderboard(ctx context.Context, f LeaderboardFilter) ([]LeaderboardRow, error)
 	Profile(ctx context.Context, userID uuid.UUID) (PlayerProfile, error)
 }
 

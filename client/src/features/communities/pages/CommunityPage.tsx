@@ -139,10 +139,10 @@ export function CommunityPage() {
           <div className="flex flex-wrap items-baseline justify-between gap-3">
             <h2 className="font-display text-xl uppercase">Sesi komunitas</h2>
             <Link
-              to={`/peringkat?komunitas=${slug}`}
+              to={`/sesi?komunitas=${slug}`}
               className="inline-flex items-center gap-2 text-sm font-medium text-primary underline-offset-4 hover:underline"
             >
-              Papan peringkat komunitas
+              Lihat semua sesi
               <FiArrowRight aria-hidden="true" />
             </Link>
           </div>
@@ -176,7 +176,7 @@ export function CommunityPage() {
         </section>
 
         <aside className="space-y-4">
-          <div className="rounded-lg border border-border bg-card p-5">
+          <div className="rounded-sm border border-border bg-card p-5">
             <Eyebrow>Ringkasan</Eyebrow>
             <dl className="mt-3 space-y-3 text-sm">
               <div className="flex items-center justify-between gap-3">
@@ -194,8 +194,8 @@ export function CommunityPage() {
             </dl>
           </div>
           {!isMember ? (
-            <div className="rounded-lg border border-dashed border-border p-5 text-sm text-muted-foreground">
-              Gabung dulu untuk ikut sesi dan muncul di papan peringkat komunitas ini.
+            <div className="rounded-sm border border-dashed border-border p-5 text-sm text-muted-foreground">
+              Gabung dulu untuk ikut sesi di komunitas ini.
             </div>
           ) : null}
         </aside>
@@ -217,7 +217,7 @@ export function CommunityPage() {
             <div className="space-y-2">
               <label className="text-sm font-medium">Nama komunitas</label>
               <input
-                className="w-full rounded-md border border-border bg-background px-3 py-2 text-sm"
+                className="w-full rounded-sm border border-border bg-background px-3 py-2 text-sm"
                 value={editName}
                 onChange={(e) => setEditName(e.target.value)}
                 required
@@ -227,7 +227,7 @@ export function CommunityPage() {
             <div className="space-y-2">
               <label className="text-sm font-medium">Kota</label>
               <input
-                className="w-full rounded-md border border-border bg-background px-3 py-2 text-sm"
+                className="w-full rounded-sm border border-border bg-background px-3 py-2 text-sm"
                 value={editCity}
                 onChange={(e) => setEditCity(e.target.value)}
                 required
@@ -236,7 +236,7 @@ export function CommunityPage() {
             <div className="space-y-2">
               <label className="text-sm font-medium">Deskripsi</label>
               <textarea
-                className="w-full rounded-md border border-border bg-background px-3 py-2 text-sm"
+                className="w-full rounded-sm border border-border bg-background px-3 py-2 text-sm"
                 value={editDescription}
                 onChange={(e) => setEditDescription(e.target.value)}
               />

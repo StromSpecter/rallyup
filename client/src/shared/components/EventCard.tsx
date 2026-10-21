@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom'
 
 import { EventStatusBadge, Pill } from '@/shared/components/StatusBadge'
+import { SportMark } from '@/shared/components/Marks'
 import { formatEventSchedule, formatIDR, formatLevelRange } from '@/shared/lib/format'
 import { sportLabel } from '@/shared/lib/constants'
 import type { Event } from '@/shared/types/api'
@@ -15,10 +16,13 @@ export function EventCard({ event }: { event: Event }) {
   const ratio = event.capacity > 0 ? Math.min(event.joinedCount / event.capacity, 1) : 0
 
   return (
-    <article className="group relative flex flex-col gap-4 rounded-lg border border-border bg-card p-5 transition-colors hover:border-primary">
+    <article className="group relative flex flex-col gap-4 rounded-sm border border-border bg-card p-5 transition-colors hover:border-primary">
       <div className="flex items-start justify-between gap-3">
         <div className="flex flex-wrap items-center gap-2">
-          <Pill tone="court">{sportLabel(event.sport)}</Pill>
+          <Pill tone="court">
+            <SportMark sport={event.sport} className="size-3.5" />
+            {sportLabel(event.sport)}
+          </Pill>
           <EventStatusBadge status={event.status} />
         </div>
         <span className="font-display text-sm tabular-nums">{formatIDR(event.fee)}</span>

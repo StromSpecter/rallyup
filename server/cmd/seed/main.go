@@ -30,25 +30,29 @@ import (
 const demoPassword = "rallyup123"
 
 const (
-	emailRani  = "rani@rallyup.test"
-	emailDimas = "dimas@rallyup.test"
-	emailFajar = "fajar@rallyup.test"
-	emailSinta = "sinta@rallyup.test"
-	emailYusuf = "yusuf@rallyup.test"
-	emailLaras = "laras@rallyup.test"
-	emailBagas = "bagas@rallyup.test"
-	emailNadia = "nadia@rallyup.test"
-	emailSekar = "sekar@rallyup.test"
-	emailYoga  = "yoga@rallyup.test"
-	emailAdit  = "adit@rallyup.test"
-	emailCitra = "citra@rallyup.test"
-	emailBayu  = "bayu@rallyup.test"
-	emailPutri = "putri@rallyup.test"
-	emailIlham = "ilham@rallyup.test"
+	emailRani   = "rani@rallyup.test"
+	emailDimas  = "dimas@rallyup.test"
+	emailFajar  = "fajar@rallyup.test"
+	emailSinta  = "sinta@rallyup.test"
+	emailYusuf  = "yusuf@rallyup.test"
+	emailLaras  = "laras@rallyup.test"
+	emailBagas  = "bagas@rallyup.test"
+	emailNadia  = "nadia@rallyup.test"
+	emailSekar  = "sekar@rallyup.test"
+	emailYoga   = "yoga@rallyup.test"
+	emailAdit   = "adit@rallyup.test"
+	emailCitra  = "citra@rallyup.test"
+	emailBayu   = "bayu@rallyup.test"
+	emailPutri  = "putri@rallyup.test"
+	emailIlham  = "ilham@rallyup.test"
+	emailGita   = "gita@rallyup.test"
+	emailRendra = "rendra@rallyup.test"
 
-	slugPadelBandung  = "padel-bandung-selatan"
-	slugTennisJakarta = "tennis-jakarta-pusat"
-	slugPadelSurabaya = "padel-surabaya-timur"
+	slugPadelBandung     = "padel-bandung-selatan"
+	slugTennisJakarta    = "tennis-jakarta-pusat"
+	slugPadelSurabaya    = "padel-surabaya-timur"
+	slugBadmintonJakarta = "badminton-jakarta-selatan"
+	slugBasketBandung    = "basket-bandung"
 )
 
 func main() {
@@ -72,19 +76,18 @@ func main() {
 	notifications := service.NewNotificationService(store.Notifications, broker)
 
 	s := &seeder{
-		ctx:         ctx,
-		store:       store,
-		users:       map[string]domain.User{},
-		communities:       map[string]domain.Community{},
-		communitySports:   map[string]domain.Sport{},
+		ctx:             ctx,
+		store:           store,
+		users:           map[string]domain.User{},
+		communities:     map[string]domain.Community{},
+		communitySports: map[string]domain.Sport{},
 		services: &service.Services{
 			Community: service.NewCommunityService(store.Communities),
 			Event: service.NewEventService(store.Events, store.Communities, store.Registrations,
 				store.Matches, store.Ratings, notifications, store.Audit, broker),
 			Score: service.NewScoreService(store.Scores, store.Matches, store.Events,
 				store.Communities, store.Ratings, notifications, store.Audit, broker),
-			Leaderboard: service.NewLeaderboardService(store.Communities, store.Ratings, broker),
-			Player:      service.NewPlayerService(store.Ratings, store.Matches),
+			Player: service.NewPlayerService(store.Ratings, store.Matches),
 		},
 	}
 
@@ -107,12 +110,12 @@ func main() {
 }
 
 type seeder struct {
-	ctx         context.Context
-	store       *repo.Store
-	services    *service.Services
-	users       map[string]domain.User
-	communities       map[string]domain.Community
-	communitySports   map[string]domain.Sport
+	ctx             context.Context
+	store           *repo.Store
+	services        *service.Services
+	users           map[string]domain.User
+	communities     map[string]domain.Community
+	communitySports map[string]domain.Sport
 }
 
 // clear mengosongkan seluruh tabel aplikasi. Tabel referensi tidak dihapus,
@@ -151,6 +154,8 @@ var demoUsers = []demoUser{
 	{"Bayu Anggara", emailBayu},
 	{"Putri Handayani", emailPutri},
 	{"Ilham Maulana", emailIlham},
+	{"Gita Larasati", emailGita},
+	{"Rendra Prakoso", emailRendra},
 }
 
 func (s *seeder) createUsers(ctx context.Context) error {
@@ -218,6 +223,26 @@ var demoCommunities = []demoCommunity{
 			"rotasi pasangan diatur supaya semua kebagian bermain.",
 		Owner:   emailIlham,
 		Members: []string{emailDimas, emailFajar, emailAdit, emailBayu, emailCitra, emailPutri, emailSinta},
+	},
+	{
+		Slug:  slugBadmintonJakarta,
+		Name:  "Badminton Jakarta Selatan",
+		City:  "Jakarta",
+		Sport: domain.SportBadminton,
+		Description: "Sesi badminton malam di Jakarta Selatan. Lapangan karpet, " +
+			"pasangan diundi ulang tiap gim supaya semua kebagian.",
+		Owner:   emailGita,
+		Members: []string{emailYoga, emailAdit, emailCitra, emailBayu, emailBagas, emailNadia, emailFajar},
+	},
+	{
+		Slug:  slugBasketBandung,
+		Name:  "Basket Bandung",
+		City:  "Bandung",
+		Sport: domain.SportBasket,
+		Description: "Half court rutin untuk pemain yang ingin tetap main " +
+			"tanpa komitmen liga.",
+		Owner:   emailRendra,
+		Members: []string{emailDimas, emailFajar, emailAdit, emailBayu, emailBagas},
 	},
 }
 
@@ -307,6 +332,19 @@ func (s *seeder) createEvents(ctx context.Context) error {
 				emailBayu, emailPutri, emailBagas, emailNadia,
 			},
 		},
+		{
+			Community: slugBadmintonJakarta,
+			Organizer: emailGita,
+			Title:     "Badminton Malam Jumat",
+			Venue:     "GOR Bulungan",
+			StartsAt:  at(now.AddDate(0, 0, -4), 20, 0),
+			Fee:       50000,
+			Courts:    2,
+			Participants: []string{
+				emailGita, emailYoga, emailAdit, emailCitra,
+				emailBayu, emailBagas, emailNadia, emailFajar,
+			},
+		},
 	} {
 		if err := s.seedPastEvent(ctx, spec); err != nil {
 			return err
@@ -358,6 +396,34 @@ func (s *seeder) createEvents(ctx context.Context) error {
 			Publish:      true,
 			Notes:        "Tiga lapangan dipakai bergantian, pasangan diundi di lokasi.",
 			Participants: []string{emailIlham, emailDimas, emailFajar, emailAdit},
+		},
+		{
+			Community:    slugBadmintonJakarta,
+			Organizer:    emailGita,
+			Title:        "Badminton Rutin Rabu",
+			Venue:        "GOR Bulungan",
+			StartsAt:     at(now.AddDate(0, 0, 3), 20, 0),
+			Capacity:     8,
+			Fee:          50000,
+			LevelMin:     1,
+			LevelMax:     7,
+			Publish:      true,
+			Notes:        "Tiga lapangan, gim 21 poin, pasangan diundi ulang tiap gim.",
+			Participants: []string{emailGita, emailYoga, emailAdit, emailCitra},
+		},
+		{
+			Community:    slugBasketBandung,
+			Organizer:    emailRendra,
+			Title:        "Basket Half Court",
+			Venue:        "GOR C-Tra Arena",
+			StartsAt:     at(now.AddDate(0, 0, 5), 19, 0),
+			Capacity:     10,
+			Fee:          40000,
+			LevelMin:     1,
+			LevelMax:     7,
+			Publish:      true,
+			Notes:        "Format 3x3 bergilir, tim diacak di lokasi.",
+			Participants: []string{emailRendra, emailDimas, emailFajar, emailAdit, emailBayu},
 		},
 		{
 			Community: slugPadelBandung,

@@ -71,7 +71,7 @@ export function LoginPage() {
         </Button>
       </form>
 
-      <p className="rounded-md border border-dashed border-border p-3 text-xs text-muted-foreground">
+      <p className="rounded-sm border border-dashed border-border p-3 text-xs text-muted-foreground">
         Untuk mencoba data contoh, pakai <span className="font-medium text-foreground">rani@rallyup.test</span>{' '}
         dengan password <span className="font-medium text-foreground">rallyup123</span>. Akun contoh lain memakai
         password yang sama.
