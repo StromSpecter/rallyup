@@ -104,6 +104,14 @@ func TestEventStandingsPoints(t *testing.T) {
 	if standings[0].Name != "Winner A" || standings[0].Rank != 1 {
 		t.Errorf("want Winner A rank 1, got %s rank %d", standings[0].Name, standings[0].Rank)
 	}
+	// Peserta yang sudah main tapi 0 poin tetap di atas peserta yang belum main.
+	if last := standings[len(standings)-1]; last.Name != "No Match" {
+		t.Errorf("want No Match last, got %s rank %d", last.Name, last.Rank)
+	}
+	if byName["Loser B"].Rank > byName["No Match"].Rank {
+		t.Errorf("want Loser B above No Match, got %d vs %d ranks",
+			byName["Loser B"].Rank, byName["No Match"].Rank)
+	}
 }
 
 func TestEventBenchListsRestingPlayers(t *testing.T) {

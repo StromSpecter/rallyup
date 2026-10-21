@@ -714,6 +714,11 @@ func eventStandings(matches []domain.Match, registrations []domain.Registration)
 	}
 
 	sort.SliceStable(out, func(i, j int) bool {
+		// Peserta yang belum bertanding sama sekali selalu di bawah peserta
+		// yang sudah main, walaupun keduanya sama-sama 0 poin.
+		if (out[i].Matches == 0) != (out[j].Matches == 0) {
+			return out[i].Matches > 0
+		}
 		if out[i].Points != out[j].Points {
 			return out[i].Points > out[j].Points
 		}
